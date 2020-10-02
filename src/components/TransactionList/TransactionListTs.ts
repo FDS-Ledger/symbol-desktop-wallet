@@ -15,9 +15,10 @@
  */
 import { mapGetters } from 'vuex'
 import { Component, Prop, Vue } from 'vue-property-decorator'
-import { AggregateTransaction, Convert, MosaicId, Transaction } from 'symbol-sdk'
+import { AggregateTransaction, Convert, MosaicId, NetworkType, Transaction } from 'symbol-sdk'
+import { TransactionAnnouncerService } from '@/services/TransactionAnnouncerService'
 // internal dependencies
-import { AccountModel } from '@/core/database/entities/AccountModel'
+import { AccountModel, AccountType } from '@/core/database/entities/AccountModel'
 // child components
 // @ts-ignore
 import ModalTransactionCosignature from '@/views/modals/ModalTransactionCosignature/ModalTransactionCosignature.vue'
@@ -32,6 +33,7 @@ import TransactionTable from '@/components/TransactionList/TransactionTable/Tran
 // @ts-ignore
 import ModalTransactionExport from '@/views/modals/ModalTransactionExport/ModalTransactionExport.vue'
 import { TransactionGroupState } from '@/store/Transaction'
+import { AccountService } from '@/services/AccountService'
 @Component({
   components: {
     ModalTransactionCosignature,
@@ -234,10 +236,27 @@ export class TransactionListTs extends Vue {
    * Hook called when a transaction is clicked
    * @param {Transaction} transaction
    */
+
   public onClickTransaction(transaction: Transaction | AggregateTransaction) {
+    const isSigner = transaction.signer.address.plain() == this.currentAccount.address ? true : false
     if (transaction.hasMissingSignatures()) {
-      this.activePartialTransaction = transaction as AggregateTransaction
-      this.hasCosignatureModal = true
+      let isCosignatureSigned = false
+      if ((transaction as AggregateTransaction).cosignatures.length != 0) {
+        ;(transaction as AggregateTransaction).cosignatures.find((res) => {
+          if (this.currentAccount.publicKey.toUpperCase() != res.signer.publicKey) {
+            isCosignatureSigned = false
+          } else {
+            isCosignatureSigned = true
+          }
+        })
+      }
+
+      if (this.currentAccount.type == AccountType.fromDescriptor('Ledger') && !isCosignatureSigned && !isSigner) {
+        this.signWithLedger(transaction as AggregateTransaction)
+      } else {
+        this.activePartialTransaction = transaction as AggregateTransaction
+        this.hasCosignatureModal = true
+      }
     } else {
       this.activeTransaction = transaction
       this.hasDetailModal = true
@@ -273,5 +292,35 @@ export class TransactionListTs extends Vue {
   }
   public downloadTransaction() {
     this.hasTransactionExportModal = true
+  }
+
+  async signWithLedger(transaction: AggregateTransaction) {
+    this.$Notice.success({
+      title: this['$t']('Verify information in your device!') + '',
+    })
+    const currentPath = this.currentAccount.path
+    const addr = this.currentAccount.address
+
+    const accountService = new AccountService()
+    const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath)
+    const symbolLedger = await accountService.getSimpleLedger(currentPath)
+    const signature = await symbolLedger.signCosignatureTransaction(currentPath, transaction, signerPublicKey)
+    this.$store.dispatch(
+      'diagnostic/ADD_DEBUG',
+      `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
+        parentHash: signature.parentHash,
+        signature: signature.signature,
+      })}`,
+    )
+
+    const res = await new TransactionAnnouncerService(this.$store)
+      .announceAggregateBondedCosignature(signature)
+      .toPromise()
+    if (res.success) {
+      this.$emit('success')
+      this.$emit('close')
+    } else {
+      this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true })
+    }
   }
 }
