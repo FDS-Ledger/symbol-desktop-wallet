@@ -304,13 +304,17 @@ export class FormSubAccountCreationTs extends Vue {
       this.$Notice.success({
         title: this['$t']('Verify information in your device!') + '',
       })
-      const transport = await TransportWebUSB.create()
-      const symbolLedger = new SymbolLedger(transport, 'XYM')
+      const accountService = new AccountService()
+      const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH)
+
       const nextPath = this.paths.getNextAccountPath(this.knownPaths)
-      const accountResult = await symbolLedger.getAccount(nextPath, this.networkType, true)
-      const { publicKey } = accountResult
+      const accountResult = await accountService.getLedgerPublicKeyByPath(
+        this.networkType,
+        AccountService.DEFAULT_ACCOUNT_PATH,
+      )
+      // const accountResult = await symbolLedger.getAccount(nextPath, this.networkType, true)
+      const publicKey = accountResult
       const address = PublicAccount.createFromPublicKey(publicKey, this.networkType).address
-      transport.close()
       const accName = Object.values(this.currentAccount)[1]
       return {
         id: SimpleObjectStorage.generateIdentifier(),

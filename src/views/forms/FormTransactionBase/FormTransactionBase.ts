@@ -43,6 +43,7 @@ import { TransactionAnnouncerService } from '@/services/TransactionAnnouncerServ
 import { Observable, of } from 'rxjs'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 import { SymbolLedger } from '@/core/utils/Ledger'
+import { AccountService } from '@/services/AccountService'
 @Component({
   computed: {
     ...mapGetters({
@@ -325,12 +326,18 @@ export class FormTransactionBase extends Vue {
         this.$Notice.success({
           title: this['$t']('Verify information in your device!') + '',
         })
-        const transport = await TransportWebUSB.create()
-        const symbolLedger = new SymbolLedger(transport, 'XYM')
+        // const transport = await TransportWebUSB.create()
+        // const symbolLedger = new SymbolLedger(transport, 'XYM')
+
         const currentPath = this.currentAccount.path
         const networkType = this.currentProfile.networkType
-        const accountResult = await symbolLedger.getAccount(currentPath, networkType, false)
-        const publicKey = accountResult.publicKey
+
+        const accountService = new AccountService()
+        const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath)
+        const symbolLedger = await accountService.getSimpleLedger(currentPath)
+
+        // const accountResult = await symbolLedger.getAccount(currentPath, networkType, false)
+        const publicKey = signerPublicKey
         const ledgerAccount = PublicAccount.createFromPublicKey(publicKey.toUpperCase(), networkType)
         this.command = this.createTransactionCommand()
         const multisigAccount = PublicAccount.createFromPublicKey(this.command.signerPublicKey, this.networkType)

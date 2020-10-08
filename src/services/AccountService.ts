@@ -278,4 +278,86 @@ export class AccountService {
       encryptedPrivateKey: newSimpleWallet.encryptedPrivateKey,
     }
   }
+
+  /**
+   * Derive an public key from ledger using a path
+   * @param {NetworkType} networkType
+   * @param {string} paths
+   * @return {Promise<string>}
+   */
+  public async getLedgerPublicKeyByPath(networkType: NetworkType, path: string): Promise<string> {
+    try {
+      if (false === DerivationPathValidator.validate(path)) {
+        const errorMessage = 'Invalid derivation path: ' + path
+        console.error(errorMessage)
+        throw new Error(errorMessage)
+      }
+      const symbolLedger = await this.getSimpleLedger(path)
+      const accountResult = await symbolLedger.getAccount(path, networkType, true)
+      const { publicKey } = accountResult
+      return publicKey
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  /**
+   * Derive an account instance of ledger using a path
+   * @param {ProfileModel} currentProfile
+   * @param {NetworkType} networkType
+   * @param {string} paths
+   * @return {Promise<AccountModel>}
+   */
+  public async getLedgerAccountByPath(
+    currentProfile: ProfileModel,
+    networkType: NetworkType,
+    path: string,
+  ): Promise<AccountModel> {
+    try {
+      const publicKey = await this.getLedgerPublicKeyByPath(networkType, path)
+      const address = PublicAccount.createFromPublicKey(publicKey, networkType).address
+      return {
+        id: SimpleObjectStorage.generateIdentifier(),
+        profileName: currentProfile.profileName,
+        name: currentProfile.profileName,
+        node: '',
+        type: AccountType.LEDGER,
+        address: address.plain(),
+        publicKey: publicKey.toUpperCase(),
+        encryptedPrivateKey: '',
+        path: path,
+        isMultisig: false,
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  /**
+   * Create a account instance of Ledger from default path
+   * @return {AccountModel}
+   */
+  public async getDefaultLedgerAccount(currentProfile: ProfileModel, networkType: NetworkType): Promise<AccountModel> {
+    try {
+      return await this.getLedgerAccountByPath(currentProfile, networkType, AccountService.DEFAULT_ACCOUNT_PATH)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  public async getSimpleLedger(path: string): Promise<any> {
+    try {
+      if (false === DerivationPathValidator.validate(path)) {
+        const errorMessage = 'Invalid derivation path: ' + path
+        console.error(errorMessage)
+        throw new Error(errorMessage)
+      }
+      const transport = await TransportWebUSB.create()
+      const symbolLedger = new SymbolLedger(transport, 'XYM')
+      return symbolLedger
+      transport.close()
+    } catch (error) {
+      console.error(error)
+    }
+  }
 }

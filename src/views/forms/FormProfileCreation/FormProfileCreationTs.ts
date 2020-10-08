@@ -222,8 +222,8 @@ export class FormProfileCreationTs extends Vue {
     this.$Notice.success({
       title: this['$t']('Verify information in your device!') + '',
     })
-    const transport = await TransportWebUSB.create()
-    const symbolLedger = new SymbolLedger(transport, 'XYM')
+    const accountService = new AccountService()
+    const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH)
     const appSupported = await symbolLedger.isAppSupported()
     if (!appSupported) {
       this.$Notice.info({
@@ -231,10 +231,12 @@ export class FormProfileCreationTs extends Vue {
       })
       return null
     }
-    const accountResult = await symbolLedger.getAccount(AccountService.DEFAULT_ACCOUNT_PATH, networkType, true)
-    const { publicKey } = accountResult
+    const accountResult = await accountService.getLedgerPublicKeyByPath(
+      networkType,
+      AccountService.DEFAULT_ACCOUNT_PATH,
+    )
+    const publicKey = accountResult
     const address = PublicAccount.createFromPublicKey(publicKey, networkType).address
-    transport.close()
 
     // add account to list
     const accName = this.currentProfile.profileName

@@ -15,7 +15,7 @@
  */
 import { mapGetters } from 'vuex'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-import { AggregateTransaction, Convert, MosaicId, Transaction } from 'symbol-sdk'
+import { AggregateTransaction, Convert, MosaicId, NetworkType, Transaction } from 'symbol-sdk'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 import { SymbolLedger } from '@/core/utils/Ledger'
 import { TransactionAnnouncerService } from '@/services/TransactionAnnouncerService'
@@ -37,6 +37,7 @@ import ModalTransactionExport from '@/views/modals/ModalTransactionExport/ModalT
 import { PageInfo, TransactionGroupState } from '@/store/Transaction'
 // @ts-ignore
 import Pagination from '@/components/Pagination/Pagination.vue'
+import { AccountService } from '@/services/AccountService'
 
 @Component({
   components: {
@@ -382,14 +383,13 @@ export class TransactionListTs extends Vue {
     this.$Notice.success({
       title: this['$t']('Verify information in your device!') + '',
     })
-    const transport = await TransportWebUSB.create()
     const currentPath = this.currentAccount.path
     const addr = this.currentAccount.address
-    const symbolLedger = new SymbolLedger(transport, 'XYM')
-    const accountResult = await symbolLedger.getAccount(currentPath, this.currentAccount.type, false)
-    const signerPublicKey = accountResult.publicKey
+
+    const accountService = new AccountService()
+    const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath)
+    const symbolLedger = await accountService.getSimpleLedger(currentPath)
     const signature = await symbolLedger.signCosignatureTransaction(currentPath, transaction, signerPublicKey)
-    transport.close()
     this.$store.dispatch(
       'diagnostic/ADD_DEBUG',
       `Co-signed transaction with account ${addr} and result: ${JSON.stringify({

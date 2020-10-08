@@ -47,9 +47,8 @@ export class NavigationTabsTs extends Vue {
   }
 
   public get entries(): TabEntry[] {
-    let entry
     if (this.isLedger) {
-      entry = this.tabEntries.filter((entry) => {
+      const entry = this.tabEntries.filter((entry) => {
         return entry.title != 'page_title_account_backup'
       })
       return entry
