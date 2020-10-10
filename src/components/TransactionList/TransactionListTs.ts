@@ -16,8 +16,6 @@
 import { mapGetters } from 'vuex'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { AggregateTransaction, Convert, MosaicId, NetworkType, Transaction } from 'symbol-sdk'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { SymbolLedger } from '@/core/utils/Ledger'
 import { TransactionAnnouncerService } from '@/services/TransactionAnnouncerService'
 // internal dependencies
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel'
@@ -285,7 +283,6 @@ export class TransactionListTs extends Vue {
    * Hook called when a transaction is clicked
    * @param {Transaction} transaction
    */
-
   public onClickTransaction(transaction: Transaction | AggregateTransaction) {
     const isSigner = transaction.signer.address.plain() == this.currentAccount.address ? true : false
     if (transaction.hasMissingSignatures()) {

@@ -33,8 +33,6 @@ import { NetworkTypeHelper } from '@/core/utils/NetworkTypeHelper'
 import { FilterHelpers } from '@/core/utils/FilterHelpers'
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage'
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { SymbolLedger } from '@/core/utils/Ledger'
 import { AccountService } from '@/services/AccountService'
 
 /// end-region custom types

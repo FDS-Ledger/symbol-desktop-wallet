@@ -37,7 +37,14 @@ export class NavigationTabsTs extends Vue {
 
   public get tabEntries(): TabEntry[] {
     // @ts-ignore
-    return this.$router.getTabEntries(this.parentRouteName)
+    const getTabEntries = this.$router.getTabEntries(this.parentRouteName)
+    if (this.isLedger) {
+      return getTabEntries.filter((entry) => {
+        return entry.title !== 'page_title_account_backup'
+      })
+    } else {
+      return getTabEntries
+    }
   }
 
   public currentAccount: AccountModel
@@ -46,16 +53,5 @@ export class NavigationTabsTs extends Vue {
     return this.currentAccount.type == AccountType.fromDescriptor('Ledger')
   }
 
-  public get entries(): TabEntry[] {
-    if (this.isLedger) {
-      const entry = this.tabEntries.filter((entry) => {
-        return entry.title != 'page_title_account_backup'
-      })
-      return entry
-    } else {
-      // @ts-ignore
-      return this.$router.getTabEntries(this.parentRouteName)
-    }
-  }
   @Prop({ default: 'horizontal' }) direction: 'horizontal' | 'vertical'
 }

@@ -34,9 +34,9 @@ export default class AccessLedgerTs extends Vue {
   public getCurrentStep(): number {
     switch (this.$route.name) {
       default:
-      case 'profiles.AccessLedger.info':
+      case 'profiles.accessLedger.info':
         return 0
-      case 'profiles.AccessLedger.finalize':
+      case 'profiles.accessLedger.finalize':
         return 1
     }
   }

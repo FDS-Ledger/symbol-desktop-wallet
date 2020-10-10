@@ -41,8 +41,6 @@ import { NetworkConfigurationModel } from '@/core/database/entities/NetworkConfi
 // @ts-ignore
 import { TransactionAnnouncerService } from '@/services/TransactionAnnouncerService'
 import { Observable, of } from 'rxjs'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { SymbolLedger } from '@/core/utils/Ledger'
 import { AccountService } from '@/services/AccountService'
 @Component({
   computed: {
@@ -326,8 +324,6 @@ export class FormTransactionBase extends Vue {
         this.$Notice.success({
           title: this['$t']('Verify information in your device!') + '',
         })
-        // const transport = await TransportWebUSB.create()
-        // const symbolLedger = new SymbolLedger(transport, 'XYM')
 
         const currentPath = this.currentAccount.path
         const networkType = this.currentProfile.networkType

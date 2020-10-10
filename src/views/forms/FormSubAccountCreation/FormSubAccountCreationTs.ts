@@ -17,8 +17,6 @@ import { Component, Vue } from 'vue-property-decorator'
 import { mapGetters } from 'vuex'
 import { Account, NetworkType, Password, Crypto, PublicAccount } from 'symbol-sdk'
 import { MnemonicPassPhrase } from 'symbol-hd-wallets'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { SymbolLedger } from '@/core/utils/Ledger'
 // internal dependencies
 import { ValidationRuleset } from '@/core/validation/ValidationRuleset'
 import { DerivationService } from '@/services/DerivationService'
@@ -67,7 +65,9 @@ export class FormSubAccountCreationTs extends Vue {
    * Currently active profile
    */
   public currentProfile: ProfileModel
-
+  /**
+   * Currently active account
+   */
   public currentAccount: AccountModel
   /**
    * Known accounts identifiers
@@ -157,6 +157,7 @@ export class FormSubAccountCreationTs extends Vue {
   public get isShowImport(): boolean {
     return this.isLedger || !this.isPrivateKeyProfile
   }
+
   /// end-region computed properties getter/setter
 
   /**
@@ -305,8 +306,6 @@ export class FormSubAccountCreationTs extends Vue {
         title: this['$t']('Verify information in your device!') + '',
       })
       const accountService = new AccountService()
-      const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH)
-
       const nextPath = this.paths.getNextAccountPath(this.knownPaths)
       const accountResult = await accountService.getLedgerPublicKeyByPath(
         this.networkType,
