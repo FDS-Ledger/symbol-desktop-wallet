@@ -309,9 +309,8 @@ export class FormSubAccountCreationTs extends Vue {
       const nextPath = this.paths.getNextAccountPath(this.knownPaths)
       const accountResult = await accountService.getLedgerPublicKeyByPath(
         this.networkType,
-        AccountService.DEFAULT_ACCOUNT_PATH,
+        nextPath,
       )
-      // const accountResult = await symbolLedger.getAccount(nextPath, this.networkType, true)
       const publicKey = accountResult
       const address = PublicAccount.createFromPublicKey(publicKey, this.networkType).address
       const accName = Object.values(this.currentAccount)[1]
