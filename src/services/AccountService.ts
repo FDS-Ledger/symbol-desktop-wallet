@@ -259,7 +259,11 @@ export class AccountService {
    */
   public updateWalletPassword(account: AccountModel, oldPassword: Password, newPassword: Password): AccountModel {
     // Password modification is not allowed for hardware wallets
-    if (account.type !== AccountType.SEED && account.type !== AccountType.PRIVATE_KEY) {
+    if (
+      account.type !== AccountType.SEED &&
+      account.type !== AccountType.PRIVATE_KEY &&
+      account.type !== AccountType.LEDGER
+    ) {
       throw new Error('Hardware account password cannot be changed')
     }
 
