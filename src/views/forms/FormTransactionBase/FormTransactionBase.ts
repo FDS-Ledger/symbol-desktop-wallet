@@ -350,16 +350,22 @@ export class FormTransactionBase extends Vue {
               .signTransaction(currentPath, transaction, this.generationHash, ledgerAccount.publicKey)
               .then((res) => {
                 // - notify about successful transaction announce
-                this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed')
-                this.$emit('success')
-                this.onConfirmationSuccess()
-                const services = new TransactionAnnouncerService(this.$store)
-                services.announce(res)
+                if(res.hash){
+                  this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed')
+                  this.$emit('success')
+                  this.onConfirmationSuccess()
+                  const services = new TransactionAnnouncerService(this.$store)
+                  services.announce(res)
+                }
+                else{
+                  this.$Notice.error({
+                    title: this['$t'](res.message) + '',
+                  })
+                }
               })
               .catch((err) => {
-                console.error(err)
                 this.$Notice.error({
-                  title: this['$t']('Transaction cancel!') + '',
+                  title: this['$t'](err.message) + '',
                 })
               })
           })
