@@ -357,9 +357,16 @@ export class FormTransactionBase extends Vue {
                   const services = new TransactionAnnouncerService(this.$store)
                   services.announce(res)
                 } else {
-                  this.$Notice.error({
-                    title: this['$t'](res.message) + '',
-                  })
+                  if(res.statusCode == '26368'){
+                    this.$Notice.error({
+                      title: this['$t']('The transaction is too long!') + '',
+                    })
+                  }
+                  else{
+                    this.$Notice.error({
+                      title: this['$t'](res.message) + '',
+                    })
+                  }
                 }
               })
               .catch((err) => {
