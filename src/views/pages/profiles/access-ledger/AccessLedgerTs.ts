@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and limitations under the License.
  *
  */
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component
 export default class AccessLedgerTs extends Vue {
-  /**
-   * List of steps
-   * @var {string[]}
-   */
-  public StepBarTitleList = ['create_profile', 'finish']
+    /**
+     * List of steps
+     * @var {string[]}
+     */
+    public StepBarTitleList = ['create_profile', 'finish'];
 
-  /**
-   * Hook called when the page is mounted
-   * @return {void}
-   */
-  async mounted() {
-    await this.$store.dispatch('temporary/initialize')
-  }
-
-  public getCurrentStep(): number {
-    switch (this.$route.name) {
-      default:
-      case 'profiles.accessLedger.info':
-        return 0
-      case 'profiles.accessLedger.finalize':
-        return 1
+    /**
+     * Hook called when the page is mounted
+     * @return {void}
+     */
+    async mounted() {
+        await this.$store.dispatch('temporary/initialize');
     }
-  }
 
-  public getStepClassName(index: number): string {
-    return this.getCurrentStep() >= index ? 'white' : 'gray'
-  }
+    public getCurrentStep(): number {
+        switch (this.$route.name) {
+            default:
+            case 'profiles.accessLedger.info':
+                return 0;
+            case 'profiles.accessLedger.finalize':
+                return 1;
+        }
+    }
+
+    public getStepClassName(index: number): string {
+        return this.getCurrentStep() >= index ? 'white' : 'gray';
+    }
 }

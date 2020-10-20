@@ -13,65 +13,65 @@
  * See the License for the specific language governing permissions and limitations under the License.
  *
  */
-import { Component, Vue } from 'vue-property-decorator'
-import { mapGetters } from 'vuex'
-import { NetworkType, Password } from 'symbol-sdk'
-import { MnemonicPassPhrase } from 'symbol-hd-wallets'
+import { Component, Vue } from 'vue-property-decorator';
+import { mapGetters } from 'vuex';
+import { NetworkType, Password } from 'symbol-sdk';
+import { MnemonicPassPhrase } from 'symbol-hd-wallets';
 // internal dependencies
-import { AccountService } from '@/services/AccountService'
-import { ProfileModel } from '@/core/database/entities/ProfileModel'
+import { AccountService } from '@/services/AccountService';
+import { ProfileModel } from '@/core/database/entities/ProfileModel';
 
 @Component({
-  computed: {
-    ...mapGetters({
-      networkType: 'network/networkType',
-      currentAccount: 'account/currentAccount',
-      currentPassword: 'temporary/password',
-    }),
-  },
+    computed: {
+        ...mapGetters({
+            networkType: 'network/networkType',
+            currentAccount: 'account/currentAccount',
+            currentPassword: 'temporary/password',
+        }),
+    },
 })
 export default class FinalizeTs extends Vue {
-  /**
-   * Currently active networkType
-   * @see {Store.Network}
-   * @var {NetworkType}
-   */
-  public networkType: NetworkType
+    /**
+     * Currently active networkType
+     * @see {Store.Network}
+     * @var {NetworkType}
+     */
+    public networkType: NetworkType;
 
-  /**
-   * Currently active profile
-   * @see {Store.Profile}
-   * @var {ProfileModel}
-   */
-  public currentProfile: ProfileModel
+    /**
+     * Currently active profile
+     * @see {Store.Profile}
+     * @var {ProfileModel}
+     */
+    public currentProfile: ProfileModel;
 
-  /**
-   * Temporary stored password
-   * @see {Store.Temporary}
-   * @var {Password}
-   */
-  public currentPassword: Password
+    /**
+     * Temporary stored password
+     * @see {Store.Temporary}
+     * @var {Password}
+     */
+    public currentPassword: Password;
 
-  /**
-   * Temporary stored password
-   * @see {Store.Temporary}
-   * @var {MnemonicPassPhrase}
-   */
-  public currentMnemonic: MnemonicPassPhrase
+    /**
+     * Temporary stored password
+     * @see {Store.Temporary}
+     * @var {MnemonicPassPhrase}
+     */
+    public currentMnemonic: MnemonicPassPhrase;
 
-  /**
-   * Account Service
-   * @var {AccountService}
-   */
-  public accountService: AccountService = new AccountService()
+    /**
+     * Account Service
+     * @var {AccountService}
+     */
+    public accountService: AccountService = new AccountService();
 
-  /**
-   * Finalize the profile creation process by adding
-   * the account created from mnemonic pass phrase.
-   * @return {void}
-   */
-  public async submit() {
-    // flush and continue
-    return this.$router.push({ name: 'dashboard' })
-  }
+    /**
+     * Finalize the profile creation process by adding
+     * the account created from mnemonic pass phrase.
+     * @return {void}
+     */
+    public async submit() {
+        // flush and continue
+        return this.$router.push({ name: 'dashboard' });
+    }
 }
