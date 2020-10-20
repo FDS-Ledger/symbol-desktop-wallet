@@ -159,6 +159,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
 
         // - open signature modal
         this.command = this.createTransactionCommand();
-        return this.command;
+        return (this.command as unknown) as Promise<void>;
     }
 }
