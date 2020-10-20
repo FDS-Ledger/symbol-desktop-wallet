@@ -38,7 +38,7 @@ import AccountAliasDisplay from '@/components/AccountAliasDisplay/AccountAliasDi
 // @ts-ignore
 import AccountMultisigGraph from '@/components/AccountMultisigGraph/AccountMultisigGraph.vue';
 
-import { AccountModel } from '@/core/database/entities/AccountModel';
+import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 
 @Component({
     components: {
@@ -74,4 +74,8 @@ export class AccountDetailsPageTs extends Vue {
      * @var {AccountModel}
      */
     public currentAccount: AccountModel;
+
+    public get isLedger(): boolean {
+        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+    }
 }
