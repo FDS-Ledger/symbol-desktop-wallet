@@ -1,6 +1,6 @@
 <template>
     <Button type="success" @click="processHardware">
-        {{ $t('trezor_confirm_transaction_prompt') }}
+        {{ $t('confirm_transaction_prompt') }}
     </Button>
 </template>
 
