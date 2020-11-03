@@ -207,7 +207,7 @@ export class TransactionCommand {
             return transaction;
         }
         if (transaction instanceof AggregateTransaction) {
-            return transaction.setMaxFeeForAggregate(feeMultiplier, this.signer.requiredCosignatures);
+            return transaction.setMaxFeeForAggregate(feeMultiplier, this.requiredCosignatures);
         } else {
             return transaction.setMaxFee(feeMultiplier);
         }

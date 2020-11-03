@@ -154,10 +154,6 @@ export class FormSubAccountCreationTs extends Vue {
         return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
     }
 
-    public get isShowImport(): boolean {
-        return this.isLedger || !this.isPrivateKeyProfile;
-    }
-
     /// end-region computed properties getter/setter
 
     /**

@@ -62,6 +62,7 @@ import HardwareConfirmationButton from '@/components/HardwareConfirmationButton/
             currentAccount: 'account/currentAccount',
             generationHash: 'network/generationHash',
             networkType: 'network/networkType',
+            epochAdjustment: 'network/epochAdjustment',
             defaultFee: 'app/defaultFee',
             currentProfile: 'profile/currentProfile',
             selectedSigner: 'account/currentSigner',
@@ -95,6 +96,11 @@ export class ModalTransactionConfirmationTs extends Vue {
      * @var {NetworkType}
      */
     public networkType: NetworkType;
+
+    /**
+     * The network configuration epochAdjustment.
+     */
+    public epochAdjustment: number;
 
     /**
      * Default fee setting
@@ -236,9 +242,10 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.networkMosaic,
             this.generationHash,
             this.networkType,
+            this.epochAdjustment,
             this.networkConfiguration,
             this.transactionFees,
-            this.currentSignerMultisigInfo!! ? this.currentSignerMultisigInfo.minApproval : this.selectedSigner.requiredCosignatures,
+            this.currentSignerMultisigInfo ? this.currentSignerMultisigInfo.minApproval : this.selectedSigner.requiredCosignatures,
         );
     }
     /**
@@ -380,7 +387,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 } else if (txMode == 'AGGREGATE') {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                         AggregateTransaction.createComplete(
-                            Deadline.create(),
+                            Deadline.create(this.epochAdjustment),
                             stageTransactions.map((t) => t.toAggregate(multisigAccount)),
                             this.networkType,
                             [],
@@ -409,7 +416,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 } else {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                         AggregateTransaction.createBonded(
-                            Deadline.create(),
+                            Deadline.create(this.epochAdjustment),
                             stageTransactions.map((t) => t.toAggregate(multisigAccount)),
                             this.networkType,
                             [],
@@ -423,7 +430,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         });
                     const hashLock = this.command.calculateSuggestedMaxFeeLedger(
                         LockFundsTransaction.create(
-                            Deadline.create(),
+                            Deadline.create(this.epochAdjustment),
                             new Mosaic(this.networkMosaic, UInt64.fromNumericString(this.networkConfiguration.lockedFundsPerAggregate)),
                             UInt64.fromUint(1000),
                             signedAggregateTransaction,
