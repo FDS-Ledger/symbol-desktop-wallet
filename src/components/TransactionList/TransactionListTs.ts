@@ -305,12 +305,12 @@ export class TransactionListTs extends Vue {
                 });
             }
 
-            if (this.currentAccount.type == AccountType.fromDescriptor('Ledger') && !isCosignatureSigned && !isSigner) {
-                this.signWithLedger(transaction as AggregateTransaction);
-            } else {
-                this.activePartialTransaction = transaction as AggregateTransaction;
-                this.hasCosignatureModal = true;
-            }
+            // if (this.currentAccount.type == AccountType.fromDescriptor('Ledger') && !isCosignatureSigned && !isSigner) {
+            //     this.signWithLedger(transaction as AggregateTransaction);
+            // } else {
+            this.activePartialTransaction = transaction as AggregateTransaction;
+            this.hasCosignatureModal = true;
+            // }
         } else {
             this.activeTransaction = transaction;
             this.hasDetailModal = true;

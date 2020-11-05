@@ -266,7 +266,7 @@ export class ModalTransactionConfirmationTs extends Vue {
      */
     public get isUsingHardwareWallet(): boolean {
         // XXX should use "stagedTransaction.signer" to identify account
-        return AccountType.LEDGER === this.currentAccount.type || AccountType.TREZOR === this.currentAccount.type ? true : false;
+        return AccountType.LEDGER === this.currentAccount.type || AccountType.TREZOR === this.currentAccount.type;
     }
 
     /**
@@ -481,12 +481,5 @@ export class ModalTransactionConfirmationTs extends Vue {
     public onConfirmationSuccess() {
         this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
         this.$emit('success');
-    }
-    /**
-     * Reset form validation
-     * @private
-     */
-    private resetFormValidation(): void {
-        this.$refs && this.$refs.observer && this.$refs.observer.reset();
     }
 }

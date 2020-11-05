@@ -126,7 +126,7 @@ export class ModalTransactionCosignatureTs extends Vue {
      */
     public get isUsingHardwareWallet(): boolean {
         // XXX should use "stagedTransaction.signer" to identify account
-        return AccountType.TREZOR === this.currentAccount.type;
+        return AccountType.LEDGER === this.currentAccount.type || AccountType.TREZOR === this.currentAccount.type;
     }
 
     public get needsCosignature(): boolean {
