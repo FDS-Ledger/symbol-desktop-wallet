@@ -38,7 +38,7 @@ import AccountAliasDisplay from '@/components/AccountAliasDisplay/AccountAliasDi
 // @ts-ignore
 import AccountMultisigGraph from '@/components/AccountMultisigGraph/AccountMultisigGraph.vue';
 
-import { AccountModel } from '@/core/database/entities/AccountModel';
+import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 
 import { AccountService } from '@/services/AccountService';
 // @ts-ignore
@@ -101,6 +101,11 @@ export class AccountDetailsPageTs extends Vue {
     public set hasAccountUnlockModal(f: boolean) {
         this.isUnlockingAccount = f;
     }
+
+    public get isLedger(): boolean {
+        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+    }
+
     /**
      * When account is unlocked, the sub account can be created
      */

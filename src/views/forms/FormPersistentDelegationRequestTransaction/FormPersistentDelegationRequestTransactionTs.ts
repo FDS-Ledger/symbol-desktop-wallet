@@ -302,7 +302,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         // - open signature modal
         this.command = this.createTransactionCommand();
         this.onShowConfirmationModal();
-        return this.command;
+        return (this.command as unknown) as Promise<void>;
     }
 
     /**
