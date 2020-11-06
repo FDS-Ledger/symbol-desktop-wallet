@@ -126,7 +126,7 @@ export class ModalTransactionCosignatureTs extends Vue {
      */
     public get isUsingHardwareWallet(): boolean {
         // XXX should use "stagedTransaction.signer" to identify account
-        return AccountType.LEDGER === this.currentAccount.type || AccountType.TREZOR === this.currentAccount.type;
+        return AccountType.TREZOR === this.currentAccount.type || AccountType.LEDGER === this.currentAccount.type;
     }
 
     public get needsCosignature(): boolean {
@@ -197,13 +197,13 @@ export class ModalTransactionCosignatureTs extends Vue {
 
     public async onSigner(transactionSigner: TransactionSigner) {
         // - sign cosignature transaction
-        if(AccountType.LEDGER === this.currentAccount.type){
+        if (this.currentAccount.type === AccountType.LEDGER) {
             this.$Notice.success({
                 title: this['$t']('Verify information in your device!') + '',
             });
             const currentPath = this.currentAccount.path;
             const addr = this.currentAccount.address;
-    
+
             const accountService = new AccountService();
             const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
             const symbolLedger = await accountService.getSimpleLedger(currentPath);
@@ -222,8 +222,7 @@ export class ModalTransactionCosignatureTs extends Vue {
             } else {
                 this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
             }
-        }
-        else{
+        } else {
             const cosignature = CosignatureTransaction.create(this.transaction);
             const signCosignatureTransaction = await transactionSigner.signCosignatureTransaction(cosignature).toPromise();
             const res = await new TransactionAnnouncerService(this.$store)
