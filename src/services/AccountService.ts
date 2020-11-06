@@ -24,6 +24,8 @@ import { AccountModel, AccountType } from '@/core/database/entities/AccountModel
 import { ProfileModel } from '@/core/database/entities/ProfileModel';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModelStorage } from '@/core/database/storage/AccountModelStorage';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
+
 // import { SymbolLedger } from '@/core/utils/Ledger';
 
 export class AccountService {
@@ -286,8 +288,8 @@ export class AccountService {
                 console.error(errorMessage);
                 throw new Error(errorMessage);
             }
-            const symbolLedger = await this.getSimpleLedger(path);
-            const accountResult = await symbolLedger.getAccount(path, networkType, true);
+            const ledgerService = new LedgerService()
+            const accountResult = await ledgerService.getAccount(path, networkType, true);
             const { publicKey } = accountResult;
             return publicKey;
         } catch (error) {
@@ -335,19 +337,19 @@ export class AccountService {
         }
     }
 
-    public async getSimpleLedger(path: string): Promise<any> {
-        // try {
-        //     if (false === DerivationPathValidator.validate(path)) {
-        //         const errorMessage = 'Invalid derivation path: ' + path;
-        //         console.error(errorMessage);
-        //         throw new Error(errorMessage);
-        //     }
-        //     const transport = await TransportWebUSB.create();
-        //     const symbolLedger = new SymbolLedger(transport, 'XYM');
-        //     return symbolLedger;
-        //     transport.close();
-        // } catch (error) {
-        //     console.error(error);
-        // }
-    }
+    // public async getSimpleLedger(path: string): Promise<any> {
+    //     // try {
+    //     //     if (false === DerivationPathValidator.validate(path)) {
+    //     //         const errorMessage = 'Invalid derivation path: ' + path;
+    //     //         console.error(errorMessage);
+    //     //         throw new Error(errorMessage);
+    //     //     }
+    //     //     const transport = await TransportWebUSB.create();
+    //     //     const symbolLedger = new SymbolLedger(transport, 'XYM');
+    //     //     return symbolLedger;
+    //     //     transport.close();
+    //     // } catch (error) {
+    //     //     console.error(error);
+    //     // }
+    // }
 }

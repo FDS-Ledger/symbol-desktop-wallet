@@ -27,12 +27,26 @@ app.use(
 
 // app.use(cors(corsOptions));
 
+async function isAppSupported(req, res) {
+  try {
+
+    const transport = await TransportNodeHid['default'].open('');
+    const symbolLedger = new SymbolLedger(transport, 'XYM');
+    const result = await symbolLedger.isAppSupported();
+    res.send({ isAppSupported: result });
+    transport.close();
+  } catch (error) {
+    res.send(error);
+    console.error(error);
+  }
+}
+
 async function account(req, res) {
   try {
     const { currentPath, networkType, display } = req.body;
     const transport = await TransportNodeHid['default'].open('');
     const symbolLedger = new SymbolLedger(transport, 'XYM');
-    const accountResult = await symbolLedger.getAccount(currentPath, NetworkType.TEST_NET, false);
+    const accountResult = await symbolLedger.getAccount(currentPath, networkType, display);
     const { /*address,*/ publicKey, /*path*/ } = accountResult;
     transport.close();
     res.send({/* address,*/ publicKey, /*path*/ });
@@ -43,30 +57,39 @@ async function account(req, res) {
 }
 
 async function sign(req, res) {
-  const { path, transferTransaction, networkGenerationHash, signerPublicKey } = req.body;
-  const transport = await TransportNodeHid['default'].create();
-  const symbolLedger = new SymbolLedger(transport, 'XYM');
-  const signedTransaction = await symbolLedger.signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey);
+  try {
 
-  const { payload, transactionHash } = signedTransaction;
-  transport.close();
-  res.send({ payload, transactionHash, signerPublicKey });
+    const { path, transferTransaction, networkGenerationHash, signerPublicKey } = req.body;
+    const transport = await TransportNodeHid['default'].create();
+    const symbolLedger = new SymbolLedger(transport, 'XYM');
+    const signedTransaction = await symbolLedger.signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey);
+
+    const { payload, hash } = signedTransaction;
+    transport.close();
+    res.send({ payload, transactionHash: hash, signerPublicKey });
+  } catch (error) {
+    res.send(error);
+    console.error(error);
+  }
 }
 
 async function signCosignatureTransaction(req, res) {
-  const { path, cosignatureTransaction, signerPublicKey } = req.body;
-  const transport = await TransportNodeHid['default'].create();
-  const symbolLedger = new SymbolLedger(transport, 'XYM');
-  const signedTransaction = await symbolLedger.signCosignatureTransaction(
-    path,
-    cosignatureTransaction,
-    signerPublicKey,
-  );
-  const { signature } = signedTransaction;
-  transport.close();
-  res.send({ signature, signerPublicKey });
+  try {
+    const { path, cosignatureTransaction, signerPublicKey } = req.body;
+    const transport = await TransportNodeHid['default'].create();
+    const symbolLedger = new SymbolLedger(transport, 'XYM');
+    const signedTransaction = await symbolLedger.signCosignatureTransaction(path, cosignatureTransaction, signerPublicKey);
+    const { signature } = signedTransaction;
+    transport.close();
+    res.send({ signature, signerPublicKey });
+  } catch (error) {
+    res.send(error);
+    console.error(error);
+  }
 }
-
+app.get('/ledger/isAppSupported', async (req, res) => {
+  isAppSupported(req, res);
+});
 app.post('/ledger/account', async (req, res) => {
   account(req, res);
 });

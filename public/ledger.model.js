@@ -141,7 +141,8 @@ exports.SymbolLedger = class SymbolLedger {
      * @return a signed Transaction which is signed by account at path on Ledger
      */
     async signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey) {
-        const rawPayload = transferTransaction.serialize();
+
+        const rawPayload = transferTransaction.serialize;
         const signingBytes = networkGenerationHash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
 
@@ -169,9 +170,10 @@ exports.SymbolLedger = class SymbolLedger {
                 payload,
                 transactionHash,
                 signerPublicKey,
-                transferTransaction.type,
-                transferTransaction.networkType,
+                transferTransaction.transaction.type,
+                transferTransaction.transaction.network,
             );
+            console.log('signedTransaction in model', signedTransaction)
             return signedTransaction;
         }
     }
@@ -185,7 +187,7 @@ exports.SymbolLedger = class SymbolLedger {
      * @return a Signed Cosignature Transaction
      */
     async signCosignatureTransaction(path, cosignatureTransaction, signerPublicKey) {
-        const rawPayload = cosignatureTransaction.serialize();
+        const rawPayload = cosignatureTransaction.serialize;
         const signingBytes = cosignatureTransaction.transactionInfo.hash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
 
@@ -200,7 +202,7 @@ exports.SymbolLedger = class SymbolLedger {
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
         const cosignatureSignedTransaction = new CosignatureSignedTransaction(
-            cosignatureTransaction.transactionInfo.hash,
+            cosignatureTransaction.transaction.transactionInfo.hash,
             signature,
             signerPublicKey,
         );

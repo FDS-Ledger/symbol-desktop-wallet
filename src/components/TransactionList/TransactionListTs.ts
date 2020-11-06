@@ -36,6 +36,7 @@ import { PageInfo, TransactionGroupState } from '@/store/Transaction';
 // @ts-ignore
 import Pagination from '@/components/Pagination/Pagination.vue';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
 
 @Component({
     components: {
@@ -393,8 +394,8 @@ export class TransactionListTs extends Vue {
 
         const accountService = new AccountService();
         const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
-        const symbolLedger = await accountService.getSimpleLedger(currentPath);
-        const signature = await symbolLedger.signCosignatureTransaction(currentPath, transaction, signerPublicKey);
+        const ledgerService = new LedgerService()
+        const signature = await ledgerService.signCosignatureTransaction(currentPath, transaction, signerPublicKey);
         this.$store.dispatch(
             'diagnostic/ADD_DEBUG',
             `Co-signed transaction with account ${addr} and result: ${JSON.stringify({

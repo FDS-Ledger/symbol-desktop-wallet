@@ -2,6 +2,25 @@ import { SignedTransaction, CosignatureSignedTransaction } from 'symbol-sdk';
 // @ts-ignore
 
 export class LedgerService {
+    async isAppSupported() {
+
+        const host = 'http://localhost:6789';
+        try {
+            const result = await fetch(host + '/ledger/isAppSupported/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+            });
+            const data = await result.json();
+            const { isAppSupported } = data;
+            return { isAppSupported };
+        } catch {
+            console.log('Please ensure that your device is opening with ledger-bolos-app!');
+        }
+    }
+
     async getAccount(currentPath: string, networkType: number, display: boolean) {
         const param = {
             currentPath,
@@ -28,10 +47,14 @@ export class LedgerService {
     async signTransaction(path: string, transferTransaction: any, networkGenerationHash: string, signerPublicKey: string) {
         const param = {
             path,
-            transferTransaction: transferTransaction.serialize(),
+            transferTransaction: {
+                ...transferTransaction.toJSON(),
+                serialize: transferTransaction.serialize()
+            },
             networkGenerationHash,
             signerPublicKey
         };
+        console.log(param.transferTransaction)
 
         const host = 'http://localhost:6789';
         const result = await fetch(host + '/ledger/sign/', {
@@ -50,14 +73,18 @@ export class LedgerService {
             transferTransaction.type,
             transferTransaction.networkType,
         );
+        console.log('signedTransaction in sevice', signedTransaction)
         return signedTransaction;
     }
 
     async signCosignatureTransaction(path: string, cosignatureTransaction: any, signerPublicKey: string) {
         const transactionHash = cosignatureTransaction.transactionInfo.hash;
         const param = {
-            path: path,
-            cosignatureTransaction: cosignatureTransaction.serialize(),
+            path,
+            cosignatureTransaction:  {
+                ...cosignatureTransaction.toJSON(),
+                serialize: cosignatureTransaction.serialize()
+            },
             signerPublicKey
         };
 
@@ -76,3 +103,4 @@ export class LedgerService {
         return signedTransaction;
     }
 }
+
