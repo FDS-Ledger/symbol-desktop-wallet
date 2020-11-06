@@ -37,7 +37,7 @@ import HardwareConfirmationButton from '@/components/HardwareConfirmationButton/
 import { CosignatureQR } from 'symbol-qr-library';
 // @ts-ignore
 import QRCodeDisplay from '@/components/QRCode/QRCodeDisplay/QRCodeDisplay.vue';
-
+import { AccountService } from '@/services/AccountService';
 @Component({
     components: {
         TransactionDetails,
@@ -197,16 +197,44 @@ export class ModalTransactionCosignatureTs extends Vue {
 
     public async onSigner(transactionSigner: TransactionSigner) {
         // - sign cosignature transaction
-        const cosignature = CosignatureTransaction.create(this.transaction);
-        const signCosignatureTransaction = await transactionSigner.signCosignatureTransaction(cosignature).toPromise();
-        const res = await new TransactionAnnouncerService(this.$store)
-            .announceAggregateBondedCosignature(signCosignatureTransaction)
-            .toPromise();
-        if (res.success) {
-            this.$emit('success');
-            this.show = false;
-        } else {
-            this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+        if(AccountType.LEDGER === this.currentAccount.type){
+            this.$Notice.success({
+                title: this['$t']('Verify information in your device!') + '',
+            });
+            const currentPath = this.currentAccount.path;
+            const addr = this.currentAccount.address;
+    
+            const accountService = new AccountService();
+            const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
+            const symbolLedger = await accountService.getSimpleLedger(currentPath);
+            const signature = await symbolLedger.signCosignatureTransaction(currentPath, this.transaction, signerPublicKey);
+            this.$store.dispatch(
+                'diagnostic/ADD_DEBUG',
+                `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
+                    parentHash: signature.parentHash,
+                    signature: signature.signature,
+                })}`,
+            );
+            const res = await new TransactionAnnouncerService(this.$store).announceAggregateBondedCosignature(signature).toPromise();
+            if (res.success) {
+                this.$emit('success');
+                this.$emit('close');
+            } else {
+                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+            }
+        }
+        else{
+            const cosignature = CosignatureTransaction.create(this.transaction);
+            const signCosignatureTransaction = await transactionSigner.signCosignatureTransaction(cosignature).toPromise();
+            const res = await new TransactionAnnouncerService(this.$store)
+                .announceAggregateBondedCosignature(signCosignatureTransaction)
+                .toPromise();
+            if (res.success) {
+                this.$emit('success');
+                this.show = false;
+            } else {
+                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+            }
         }
     }
 
