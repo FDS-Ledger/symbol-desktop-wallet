@@ -42,7 +42,7 @@
                     <MessageInput v-model="formItems.messagePlain" @input="onChangeMessage" />
                     <FormRow>
                         <template v-slot:inputs>
-                            <div class="inputs-container checkboxes">
+                            <div v-if="!isLedger" class="inputs-container checkboxes">
                                 <Checkbox v-model="formItems.encryptMessage" @input="onEncryptionChange">
                                     {{ $t('encrypt_message') }}
                                 </Checkbox>
