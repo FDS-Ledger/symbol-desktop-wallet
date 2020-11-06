@@ -28,13 +28,18 @@ app.use(
 // app.use(cors(corsOptions));
 
 async function account(req, res) {
-  const { currentPath, networkType, display } = req.body;
-  const transport = await TransportNodeHid['default'].open('');
-  const symbolLedger = new SymbolLedger(transport, 'XYM');
-  const accountResult = await symbolLedger.getAccount(currentPath, NetworkType.TEST_NET, false);
-  const { /*address,*/ publicKey, /*path*/ } = accountResult;
-  transport.close();
-  res.send({/* address,*/ publicKey, /*path*/ });
+  try {
+    const { currentPath, networkType, display } = req.body;
+    const transport = await TransportNodeHid['default'].open('');
+    const symbolLedger = new SymbolLedger(transport, 'XYM');
+    const accountResult = await symbolLedger.getAccount(currentPath, NetworkType.TEST_NET, false);
+    const { /*address,*/ publicKey, /*path*/ } = accountResult;
+    transport.close();
+    res.send({/* address,*/ publicKey, /*path*/ });
+  } catch (error) {
+    res.send(error);
+    console.error(error);
+  }
 }
 
 async function sign(req, res) {
