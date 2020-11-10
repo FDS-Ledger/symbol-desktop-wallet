@@ -153,7 +153,6 @@ exports.SymbolLedger = class SymbolLedger {
                 response = res;
             })
             .catch((err) => {
-                console.log(err);
                 response = 'error';
                 errMes = err;
             });
@@ -173,7 +172,6 @@ exports.SymbolLedger = class SymbolLedger {
                 transferTransaction.transaction.type,
                 transferTransaction.transaction.network,
             );
-            console.log('signedTransaction in model', signedTransaction)
             return signedTransaction;
         }
     }
@@ -188,9 +186,8 @@ exports.SymbolLedger = class SymbolLedger {
      */
     async signCosignatureTransaction(path, cosignatureTransaction, signerPublicKey) {
         const rawPayload = cosignatureTransaction.serialize;
-        const signingBytes = cosignatureTransaction.transactionInfo.hash + rawPayload.slice(216);
+        const signingBytes = cosignatureTransaction.transaction.hash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
-
         let response;
         await this.ledgerMessageHandler(path, rawTx)
             .then((res) => {
@@ -202,7 +199,7 @@ exports.SymbolLedger = class SymbolLedger {
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
         const cosignatureSignedTransaction = new CosignatureSignedTransaction(
-            cosignatureTransaction.transaction.transactionInfo.hash,
+            cosignatureTransaction.transaction.hash,
             signature,
             signerPublicKey,
         );

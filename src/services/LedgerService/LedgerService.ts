@@ -54,8 +54,6 @@ export class LedgerService {
             networkGenerationHash,
             signerPublicKey
         };
-        console.log(param.transferTransaction)
-
         const host = 'http://localhost:6789';
         const result = await fetch(host + '/ledger/sign/', {
             method: 'POST',
@@ -73,7 +71,6 @@ export class LedgerService {
             transferTransaction.type,
             transferTransaction.networkType,
         );
-        console.log('signedTransaction in sevice', signedTransaction)
         return signedTransaction;
     }
 
@@ -82,7 +79,7 @@ export class LedgerService {
         const param = {
             path,
             cosignatureTransaction:  {
-                ...cosignatureTransaction.toJSON(),
+                transaction: {hash: transactionHash},
                 serialize: cosignatureTransaction.serialize()
             },
             signerPublicKey
