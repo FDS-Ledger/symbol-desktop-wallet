@@ -13,15 +13,88 @@
  * See the License for the specific language governing permissions and limitations under the License.
  *
  */
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
+import { Formatters } from '@/core/utils/Formatters';
+import { mapGetters } from 'vuex';
+import { MnemonicPassPhrase } from 'symbol-hd-wallets';
+import { AccountInfo, Address, MosaicId, RepositoryFactory } from 'symbol-sdk';
+import { ProfileModel } from '@/core/database/entities/ProfileModel';
+import { AccountService } from '@/services/AccountService';
 
-@Component
+@Component({
+    computed: {
+        ...mapGetters({
+            currentMnemonic: 'temporary/mnemonic',
+            networkType: 'network/networkType',
+            networkMosaic: 'mosaic/networkMosaic',
+            networkCurrency: 'mosaic/networkCurrency',
+            currentProfile: 'profile/currentProfile',
+            currentPassword: 'temporary/password',
+            selectedAccounts: 'account/selectedAddressesToInteract',
+        }),
+    },
+})
 export default class AccessLedgerTs extends Vue {
+    /**
+     * Formatting helpers
+     * @protected
+     */
+    protected formatters = Formatters;
     /**
      * List of steps
      * @var {string[]}
      */
     public StepBarTitleList = ['create_profile', 'finish'];
+
+    /**
+     * Network's currency mosaic id
+     * @see {Store.Mosaic}
+     * @var {MosaicId}
+     */
+    public networkMosaic: MosaicId;
+
+    /**
+     * Currently active profile
+     * @see {Store.Profile}
+     * @var {string}
+     */
+    public currentProfile: ProfileModel;
+
+    /**
+     * Temporary stored mnemonic pass phrase
+     * @see {Store.Temporary}
+     * @var {MnemonicPassPhrase}
+     */
+    public currentMnemonic: string;
+
+    /**
+     * Account Service
+     * @var {AccountService}
+     */
+    public accountService: AccountService;
+
+    /**
+     * List of addresses
+     * @var {Address[]}
+     */
+    public addressesList: Address[] = [];
+
+    /**
+     * Balances map
+     * @var {any}
+     */
+    public addressMosaicMap = {};
+
+    /**
+     * Map of selected accounts
+     * @var {number[]}
+     */
+    public selectedAccounts: number[];
+
+    /**
+     * Indicates if account balance and addresses are already fetched
+     */
+    private initialized: boolean = false;
 
     /**
      * Hook called when the page is mounted
@@ -42,6 +115,6 @@ export default class AccessLedgerTs extends Vue {
     }
 
     public getStepClassName(index: number): string {
-        return this.getCurrentStep() >= index ? 'white' : 'gray';
+        return this.getCurrentStep() == index ? 'active' : this.getCurrentStep() > index ? 'done' : '';
     }
 }

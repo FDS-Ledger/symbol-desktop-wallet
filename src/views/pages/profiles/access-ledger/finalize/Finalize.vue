@@ -1,22 +1,20 @@
 <template>
     <div class="finish-sec scroll" @keyup.enter="submit">
-        <img src="@/views/resources/img/success.png" />
-        <span class="set-title"> {{ $t('creation_successful') }}</span>
         <div class="finish-col">
             <div class="finish-left">
-                <div class="jump-btn">
-                    <div class="flex-container" style="width: 100%;">
-                        <button type="button" class="button-style back-button" @click="$router.back()">
+                <p class="text1">
+                    {{ $t('safe_storage_tips') }}
+                </p>
+                <div class="buttons clear">
+                    <div class="float-right mt-3">
+                        <button type="button" class="solid-button button-style fat-button create-account-style" @click="$router.back()">
                             {{ $t('back') }}
                         </button>
-                        <button type="submit" class="button-style validation-button" @click="submit">
+                        <button type="submit" class="inverted-button button-style fat-button create-account-style" @click="submit">
                             {{ $t('next') }}
                         </button>
                     </div>
                 </div>
-            </div>
-            <div class="finish-right">
-                <!-- <img src="@/views/resources/img/finish.png" alt> -->
             </div>
         </div>
     </div>
