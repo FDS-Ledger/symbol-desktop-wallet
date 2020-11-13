@@ -365,22 +365,16 @@ export class ModalTransactionConfirmationTs extends Vue {
                                     this.show = false;
                                 } else {
                                     if (res.statusCode == '26368') {
-                                        this.$Notice.error({
-                                            title: this['$t']('The transaction is too long!') + '',
-                                        });
+                                        this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
                                         this.show = false;
                                     } else {
-                                        this.$Notice.error({
-                                            title: this['$t'](res.message) + '',
-                                        });
+                                        this.$store.dispatch('notification/ADD_ERROR', this.$t(res.message));
                                         this.show = false;
                                     }
                                 }
                             })
                             .catch((err) => {
-                                this.$Notice.error({
-                                    title: this['$t'](err.message) + '',
-                                });
+                                this.$store.dispatch('notification/ADD_ERROR', this.$t(err.message));
                                 this.show = false;
                             });
                     });
@@ -408,9 +402,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         })
                         .catch((err) => {
                             console.error(err);
-                            this.$Notice.error({
-                                title: this['$t']('Transaction cancel!') + '',
-                            });
+                            this.$store.dispatch('notification/ADD_ERROR', 'transaction_cancel');
                             this.show = false;
                         });
                 } else {
@@ -461,9 +453,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 }
             } catch (error) {
                 // }
-                this.$Notice.error({
-                    title: this['$t']('Please check your device connection!') + '',
-                });
+                this.$store.dispatch('notification/ADD_ERROR', 'please_check_device_connection');
                 this.show = false;
             }
         }

@@ -198,9 +198,7 @@ export class ModalTransactionCosignatureTs extends Vue {
     public async onSigner(transactionSigner: TransactionSigner) {
         // - sign cosignature transaction
         if (this.currentAccount.type === AccountType.LEDGER) {
-            this.$Notice.success({
-                title: this['$t']('Verify information in your device!') + '',
-            });
+            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
             const currentPath = this.currentAccount.path;
             const addr = this.currentAccount.address;
 

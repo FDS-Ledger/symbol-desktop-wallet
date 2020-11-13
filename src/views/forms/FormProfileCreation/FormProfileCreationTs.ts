@@ -34,6 +34,8 @@ import { FilterHelpers } from '@/core/utils/FilterHelpers';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 import { AccountService } from '@/services/AccountService';
+import i18n from '@/language/index';
+
 
 /// end-region custom types
 
@@ -197,9 +199,7 @@ export class FormProfileCreationTs extends Vue {
                 .catch((error) => {
                     {
                         console.error(error);
-                        this.$Notice.error({
-                            title: this['$t']('CONDITIONS_OF_USE_NOT_SATISFIED') + '',
-                        });
+                        this.$store.dispatch('notification/ADD_ERROR', 'conditions_not_satisfied');
                     }
                 });
         }
@@ -219,16 +219,14 @@ export class FormProfileCreationTs extends Vue {
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
         const profileName = this.formItems.profileName;
-        this.$Notice.success({
-            title: this['$t']('Verify information in your device!') + '',
-        });
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+
+
         const accountService = new AccountService();
         const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
         const appSupported = await symbolLedger.isAppSupported();
         if (!appSupported) {
-            this.$Notice.info({
-                title: this['$t']('Please update your Symbol BOLOS app!') + '',
-            });
+            this.$store.dispatch('notification/ADD_INFO', 'please_update_symbol_bolos_app');
             return null;
         }
         const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, AccountService.DEFAULT_ACCOUNT_PATH);

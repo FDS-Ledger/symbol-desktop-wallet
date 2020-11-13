@@ -56,7 +56,7 @@ export default {
             Vue.set(state, 'history', history);
 
             /// region trigger notice UI
-            app.$Notice.destroy();
+            // app.$Notice.destroy();
             app.$Notice[payload.level]({ title: app.$t(message) });
             /// end-region trigger notice UI
         },
@@ -97,6 +97,12 @@ export default {
         async ADD_ERROR({ commit, dispatch }, message) {
             commit('add', { level: 'error', message });
             dispatch('diagnostic/ADD_ERROR', `Notification (Error): ${message}`, {
+                root: true,
+            });
+        },
+        async ADD_INFO({ commit, dispatch }, message) {
+            commit('add', { level: 'info', message });
+            dispatch('diagnostic/ADD_INFO', `Notification (Info): ${message}`, {
                 root: true,
             });
         },
