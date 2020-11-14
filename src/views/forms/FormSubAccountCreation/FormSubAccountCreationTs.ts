@@ -130,7 +130,7 @@ export class FormSubAccountCreationTs extends Vue {
     public created() {
         this.accountService = new AccountService();
         this.paths = new DerivationService();
-        this.formItems.type = this.isPrivateKeyProfile && !this.isLedger ? 'privatekey_account' : 'child_account';
+        this.formItems.type = this.isPrivateKeyAccount ? 'privatekey_account' : 'child_account';
     }
 
     /// region computed properties getter/setter
@@ -152,6 +152,10 @@ export class FormSubAccountCreationTs extends Vue {
 
     public get isLedger(): boolean {
         return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+    }
+
+    public get isPrivateKeyAccount(): boolean {
+        return this.isPrivateKeyProfile && !this.isLedger;
     }
 
     /// end-region computed properties getter/setter
