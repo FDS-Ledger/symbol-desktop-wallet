@@ -51,7 +51,7 @@
                     <!-- Transaction fee selector and submit button -->
 
                     <FormRow class-name="buttons-row">
-                        <template v-slot:inputs>
+                        <template v-if="!isLedger" v-slot:inputs>
                             <div class="harvesting-buttons-container">
                                 <button
                                     v-if="harvestingStatus === 'INACTIVE'"

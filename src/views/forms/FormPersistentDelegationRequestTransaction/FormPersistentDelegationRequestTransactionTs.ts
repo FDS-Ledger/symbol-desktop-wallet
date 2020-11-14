@@ -32,6 +32,7 @@ import { mapGetters } from 'vuex';
 // internal dependencies
 import { Formatters } from '@/core/utils/Formatters';
 import { FormTransactionBase } from '@/views/forms/FormTransactionBase/FormTransactionBase';
+import { AccountType } from '@/core/database/entities/AccountModel';
 
 // child components
 import { ValidationObserver } from 'vee-validate';
@@ -260,6 +261,13 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
      */
     private get isNodeKeyLinked(): boolean {
         return !!this.currentSignerAccountInfo?.supplementalPublicKeys.node;
+    }
+
+    /**
+     * Check the account type is Ledger or not
+     */
+    private get isLedger(): boolean {
+        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
     }
 
     /**
