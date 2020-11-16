@@ -56,7 +56,7 @@ export default {
             Vue.set(state, 'history', history);
 
             /// region trigger notice UI
-            // app.$Notice.destroy();
+            app.$Notice.destroy();
             app.$Notice[payload.level]({ title: app.$t(message) });
             /// end-region trigger notice UI
         },
