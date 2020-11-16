@@ -314,7 +314,7 @@ export class ModalTransactionConfirmationTs extends Vue {
      */
     public async onSigner(transactionSigner: TransactionSigner): Promise<void> {
         // - log about unlock success
-        // - get transaction stage config
+        // - get transaction stage configs
         if (
             AccountType.SEED === this.currentAccount.type ||
             AccountType.PRIVATE_KEY === this.currentAccount.type ||
@@ -337,6 +337,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
                 const accountService = new AccountService();
+                this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
                 const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
                 const symbolLedger = await accountService.getSimpleLedger(currentPath);
                 // const accountResult = await symbolLedger.getAccount(currentPath, networkType, false)
