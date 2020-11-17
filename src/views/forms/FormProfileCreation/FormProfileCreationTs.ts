@@ -34,6 +34,7 @@ import { FilterHelpers } from '@/core/utils/FilterHelpers';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
 
 /// end-region custom types
 
@@ -222,15 +223,15 @@ export class FormProfileCreationTs extends Vue {
         this.$Notice.success({
             title: this['$t']('Verify information in your device!') + '',
         });
-        const accountService = new AccountService();
-        const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
-        const appSupported = await symbolLedger.isAppSupported();
-        if (!appSupported) {
+        const ledgerService = new LedgerService();
+        const { isAppSupported } = await ledgerService.isAppSupported();
+        if (!isAppSupported) {
             this.$Notice.info({
                 title: this['$t']('Please update your Symbol BOLOS app!') + '',
             });
             return null;
         }
+        const accountService = new AccountService();
         const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, AccountService.DEFAULT_ACCOUNT_PATH);
         const publicKey = accountResult;
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
