@@ -196,15 +196,49 @@ export class FormProfileCreationTs extends Vue {
                 })
                 .catch((error) => {
                     {
-                        console.error(error);
-                        this.$Notice.error({
-                            title: this['$t']('CONDITIONS_OF_USE_NOT_SATISFIED') + '',
-                        });
+                        let message_error ='';
+                        if(error.statusCode){
+                            message_error = error.statusCode;
+                        }
+                        else{
+                            message_error = error.message;
+                        }
+                        this.alertHandler(message_error)
                     }
                 });
         }
     }
 
+    public alertHandler(inputErrorCode) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+            case "Cannot read property 'isAppSupported' of undefined":
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_NO_DEVICE');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_BRIDGE_NOT_RUNNING');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_DEVICE_LOCKED');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_NOT_OPENED_APP');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_NOT_USING_NEM_APP');
+                break;
+            case 27013:
+            case 'Not a valid public key':
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_USER_REJECT_LOGIN');
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'LEDGER_NOT_SUPPORTED_APP');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', 'ALERT_CREATE_WALLET_FAILED '+ inputErrorCode);
+                break;
+        }
+    }
     /**
      * filter tags
      */

@@ -351,7 +351,6 @@ export class AccountService {
             const transport = await TransportWebUSB.create();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             return symbolLedger;
-            transport.close();
         } catch (error) {
             console.error(error);
         }
