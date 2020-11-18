@@ -339,6 +339,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
                 const accountService = new AccountService();
+                this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
                 const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
                 const publicKey = signerPublicKey;
                 const ledgerAccount = PublicAccount.createFromPublicKey(publicKey.toUpperCase(), networkType);
