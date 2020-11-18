@@ -340,9 +340,7 @@ export class TransactionListTs extends Vue {
     }
 
     async signWithLedger(transaction: AggregateTransaction) {
-        this.$Notice.success({
-            title: this['$t']('Verify information in your device!') + '',
-        });
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const currentPath = this.currentAccount.path;
         const addr = this.currentAccount.address;
 

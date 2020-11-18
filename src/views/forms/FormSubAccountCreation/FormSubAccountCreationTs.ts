@@ -302,9 +302,7 @@ export class FormSubAccountCreationTs extends Vue {
 
     async importSubAccountFromLedger(childAccountName: string): Promise<AccountModel> | null {
         try {
-            this.$Notice.success({
-                title: this['$t']('Verify information in your device!') + '',
-            });
+            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
             const accountService = new AccountService();
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
             const accountResult = await accountService.getLedgerPublicKeyByPath(this.networkType, nextPath);
@@ -328,9 +326,7 @@ export class FormSubAccountCreationTs extends Vue {
                 isDisabled: false,
                 message: '',
             });
-            this.$Notice.error({
-                title: this['$t']('CONDITIONS_OF_USE_NOT_SATISFIED') + '',
-            });
+            this.$store.dispatch('notification/ADD_ERROR', 'conditions_not_satisfied');
         }
     }
 }

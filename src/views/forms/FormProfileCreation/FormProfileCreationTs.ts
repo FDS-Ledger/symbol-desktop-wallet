@@ -199,9 +199,7 @@ export class FormProfileCreationTs extends Vue {
                 .catch((error) => {
                     {
                         console.error(error);
-                        this.$Notice.error({
-                            title: this['$t']('CONDITIONS_OF_USE_NOT_SATISFIED') + '',
-                        });
+                        this.$store.dispatch('notification/ADD_ERROR', 'conditions_not_satisfied');
                     }
                 });
         }
@@ -221,15 +219,11 @@ export class FormProfileCreationTs extends Vue {
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
         const profileName = this.formItems.profileName;
-        this.$Notice.success({
-            title: this['$t']('Verify information in your device!') + '',
-        });
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const ledgerService = new LedgerService()
         const { isAppSupported } = await ledgerService.isAppSupported();
         if (!isAppSupported) {
-            this.$Notice.info({
-                title: this['$t']('Please update your Symbol BOLOS app!') + '',
-            });
+            this.$store.dispatch('notification/ADD_INFO', 'please_update_symbol_bolos_app');
             return null;
         }
         const accountService = new AccountService();
