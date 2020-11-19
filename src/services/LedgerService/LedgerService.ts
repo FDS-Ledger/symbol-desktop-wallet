@@ -3,9 +3,8 @@ import { SignedTransaction, CosignatureSignedTransaction } from 'symbol-sdk';
 
 export class LedgerService {
     async isAppSupported() {
-
-        const host = 'http://localhost:6789';
         try {
+            const host = 'http://localhost:6789';
             const result = await fetch(host + '/ledger/isAppSupported/', {
                 method: 'GET',
                 headers: {
@@ -32,8 +31,8 @@ export class LedgerService {
             networkType,
             display
         };
-        const host = 'http://localhost:6789';
         try {
+            const host = 'http://localhost:6789';
             const result = await fetch(host + '/ledger/account/', {
                 method: 'POST',
                 headers: {
@@ -64,8 +63,8 @@ export class LedgerService {
             networkGenerationHash,
             signerPublicKey
         };
-        const host = 'http://localhost:6789';
         try {
+            const host = 'http://localhost:6789';
             const result = await fetch(host + '/ledger/sign/', {
                 method: 'POST',
                 headers: {
@@ -103,9 +102,8 @@ export class LedgerService {
             },
             signerPublicKey
         };
-
-        const host = 'http://localhost:6789';
         try {
+            const host = 'http://localhost:6789';
             const result = await fetch(host + '/ledger/signCosignature/', {
                 method: 'POST',
                 headers: {
@@ -120,9 +118,8 @@ export class LedgerService {
                 throw ({ errorCode: data.statusCode || data.id })
             }
             const signedTransaction = new CosignatureSignedTransaction(transactionHash, data.signature, data.signerPublicKey);
-
             return signedTransaction;
-
+            
         } catch (error) {
             throw error.errorCode ? error : { errorCode: 'bridge_problem' }
         }

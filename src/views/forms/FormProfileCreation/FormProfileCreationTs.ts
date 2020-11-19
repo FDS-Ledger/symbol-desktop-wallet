@@ -228,10 +228,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$router.push({ name: 'profiles.accessLedger.finalize' });
                 })
                 .catch((error) => {
-                    {
-                        this.alertHandler(error.errorCode ? error.errorCode : error)
-                        console.error(error);
-                    }
+                    this.alertHandler(error.errorCode ? error.errorCode : error)
                 });
         }
     }

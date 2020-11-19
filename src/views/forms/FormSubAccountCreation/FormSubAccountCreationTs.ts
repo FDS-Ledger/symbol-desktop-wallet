@@ -184,13 +184,13 @@ export class FormSubAccountCreationTs extends Vue {
      * When account is unlocked, the sub account can be created
      */
     public async onAccountUnlocked(account: Account, password: Password) {
-        this.currentPassword = password;
-
-        // - interpret form items
-        const values = { ...this.formItems };
-        const type = values.type && ['child_account', 'privatekey_account'].includes(values.type) ? values.type : 'child_account';
-
         try {
+            this.currentPassword = password;
+
+            // - interpret form items
+            const values = { ...this.formItems };
+            const type = values.type && ['child_account', 'privatekey_account'].includes(values.type) ? values.type : 'child_account';
+
             // - create sub account (can be either derived or by private key)
             let subAccount: AccountModel;
             switch (type) {
@@ -218,8 +218,7 @@ export class FormSubAccountCreationTs extends Vue {
             // Verify that the import is repeated
             const hasAddressInfo = this.knownAccounts.find((w) => w.address === subAccount.address);
             if (hasAddressInfo !== undefined) {
-                this.alertHandler('error_private_key_already_exists', { name: hasAddressInfo.name })
-                // return null;
+                throw ({ errorCode: 'error_private_key_already_exists', data: { name: hasAddressInfo.name } })
             }
 
             // - remove password before GC
@@ -235,8 +234,7 @@ export class FormSubAccountCreationTs extends Vue {
             this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
             this.$emit('submit', this.formItems);
         } catch (error) {
-            this.alertHandler(error.errorCode ? error.errorCode : error)
-            console.error(error);
+            this.alertHandler(error.errorCode ? error.errorCode : error, error.data)
         }
     }
     /**
@@ -267,7 +265,7 @@ export class FormSubAccountCreationTs extends Vue {
                 this.$store.dispatch('notification/ADD_ERROR', this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }));
                 break;
             case 'error_private_key_already_exists':
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('error_private_key_already_exists', { name: data.name }));
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('error_private_key_already_exists', data));
                 break;
             case 2:
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
@@ -277,54 +275,56 @@ export class FormSubAccountCreationTs extends Vue {
                 break;
         }
     }
-
     /**
      * Use HD account derivation to get next child account
      * @param {string} child account name
      * @return {AccountModel}
      */
     private deriveNextChildAccount(childAccountName: string): AccountModel | null {
-        // - don't allow creating more than 10 accounts
-        if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-            throw ({ errorCode: 'error_too_many_seed_accounts' })
-            // return null;
-        }
+        try {
+            // - don't allow creating more than 10 accounts
+            if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
+                throw ({ errorCode: 'error_too_many_seed_accounts' })
+            }
 
-        if (this.isLedger) {
-            this.importSubAccountFromLedger(childAccountName)
-                .then((res) => {
-                    this.accountService.saveAccount(res);
-                    // - update app state
-                    this.$store.dispatch('profile/ADD_ACCOUNT', res);
-                    this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
-                    this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', this.currentProfile.accounts);
-                    this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
-                    this.$emit('submit', this.formItems);
-                })
-                .catch((error) => {
-                    this.alertHandler(error.errorCode ? error.errorCode : error)
-                    console.error(error);
-                });
-        } else {
-            // - get next path
-            const nextPath = this.paths.getNextAccountPath(this.knownPaths);
+            if (this.isLedger) {
+                this.importSubAccountFromLedger(childAccountName)
+                    .then((res) => {
+                        this.accountService.saveAccount(res);
+                        // - update app state
+                        this.$store.dispatch('profile/ADD_ACCOUNT', res);
+                        this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
+                        this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', this.currentProfile.accounts);
+                        this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
+                        this.$emit('submit', this.formItems);
+                    })
+                    .catch((error) => {
+                        this.alertHandler(error.errorCode ? error.errorCode : error)
+                    });
+            } else {
+                // - get next path
+                const nextPath = this.paths.getNextAccountPath(this.knownPaths);
 
-            this.$store.dispatch('diagnostic/ADD_DEBUG', 'Adding child account with derivation path: ' + nextPath);
+                this.$store.dispatch('diagnostic/ADD_DEBUG', 'Adding child account with derivation path: ' + nextPath);
 
-            // - decrypt mnemonic
-            const encSeed = this.currentProfile.seed;
-            const passphrase = Crypto.decrypt(encSeed, this.currentPassword.value);
-            const mnemonic = new MnemonicPassPhrase(passphrase);
+                // - decrypt mnemonic
+                const encSeed = this.currentProfile.seed;
+                const passphrase = Crypto.decrypt(encSeed, this.currentPassword.value);
+                const mnemonic = new MnemonicPassPhrase(passphrase);
 
-            // create account by mnemonic
-            return this.accountService.getChildAccountByPath(
-                this.currentProfile,
-                this.currentPassword,
-                mnemonic,
-                nextPath,
-                this.networkType,
-                childAccountName,
-            );
+                // create account by mnemonic
+                return this.accountService.getChildAccountByPath(
+                    this.currentProfile,
+                    this.currentPassword,
+                    mnemonic,
+                    nextPath,
+                    this.networkType,
+                    childAccountName,
+                );
+            }
+        } catch (error) {
+            this.alertHandler(error.errorCode ? error.errorCode : error, error.data)
+            return null
         }
     }
     /**
