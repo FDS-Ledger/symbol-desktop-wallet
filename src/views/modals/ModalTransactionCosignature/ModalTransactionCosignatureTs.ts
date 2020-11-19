@@ -196,31 +196,73 @@ export class ModalTransactionCosignatureTs extends Vue {
         this.$store.dispatch('diagnostic/ADD_INFO', 'Account ' + account.address.plain() + ' unlocked successfully.');
         return this.onSigner(new AccountTransactionSigner(account));
     }
-
+    /**
+    * Pop-up alert handler
+    * @return {void}
+    */
+    public alertHandler(inputErrorCode) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 26368:
+                this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed') + inputErrorCode);
+                break;
+        }
+    }
     public async onSigner(transactionSigner: TransactionSigner) {
         // - sign cosignature transaction
         if (this.currentAccount.type === AccountType.LEDGER) {
-            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-            const currentPath = this.currentAccount.path;
-            const addr = this.currentAccount.address;
-
-            const accountService = new AccountService();
-            const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
-            const ledgerService = new LedgerService()
-            const signature = await ledgerService.signCosignatureTransaction(currentPath, this.transaction, signerPublicKey);
-            this.$store.dispatch(
-                'diagnostic/ADD_DEBUG',
-                `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
-                    parentHash: signature.parentHash,
-                    signature: signature.signature,
-                })}`,
-            );
-            const res = await new TransactionAnnouncerService(this.$store).announceAggregateBondedCosignature(signature).toPromise();
-            if (res.success) {
-                this.$emit('success');
-                this.$emit('close');
-            } else {
-                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+            try {
+                const ledgerService = new LedgerService()
+                const { isAppSupported } = await ledgerService.isAppSupported();
+                if (!isAppSupported) {
+                    throw ({ errorCode: 2 })
+                }
+                const currentPath = this.currentAccount.path;
+                const addr = this.currentAccount.address;
+                const accountService = new AccountService();
+                this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+                const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
+                const signature = await ledgerService.signCosignatureTransaction(currentPath, this.transaction, signerPublicKey);
+                this.$store.dispatch(
+                    'diagnostic/ADD_DEBUG',
+                    `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
+                        parentHash: signature.parentHash,
+                        signature: signature.signature,
+                    })}`,
+                );
+                const res = await new TransactionAnnouncerService(this.$store).announceAggregateBondedCosignature(signature).toPromise();
+                if (res.success) {
+                    this.$emit('success');
+                    this.$emit('close');
+                } else {
+                    this.alertHandler(res.error)
+                }
+            } catch (error) {
+                this.show = false;
+                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
             }
         } else {
             const cosignature = CosignatureTransaction.create(this.transaction);
@@ -232,7 +274,7 @@ export class ModalTransactionCosignatureTs extends Vue {
                 this.$emit('success');
                 this.show = false;
             } else {
-                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+                this.alertHandler(res.error)
             }
         }
     }

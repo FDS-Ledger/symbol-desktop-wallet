@@ -22,6 +22,7 @@ import { ValidationRuleset } from '@/core/validation/ValidationRuleset';
 import { DerivationService } from '@/services/DerivationService';
 import { NotificationType } from '@/core/utils/NotificationType';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 // child components
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
@@ -217,11 +218,8 @@ export class FormSubAccountCreationTs extends Vue {
             // Verify that the import is repeated
             const hasAddressInfo = this.knownAccounts.find((w) => w.address === subAccount.address);
             if (hasAddressInfo !== undefined) {
-                this.$store.dispatch(
-                    'notification/ADD_ERROR',
-                    `This private key already exists. The account name is ${hasAddressInfo.name}`,
-                );
-                return null;
+                this.alertHandler('error_private_key_already_exists', { name: hasAddressInfo.name })
+                // return null;
             }
 
             // - remove password before GC
@@ -236,9 +234,47 @@ export class FormSubAccountCreationTs extends Vue {
             await this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', this.currentProfile.accounts);
             this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
             this.$emit('submit', this.formItems);
-        } catch (e) {
-            this.$store.dispatch('notification/ADD_ERROR', 'An error happened, please try again.');
-            console.error(e);
+        } catch (error) {
+            this.alertHandler(error.errorCode ? error.errorCode : error)
+            console.error(error);
+        }
+    }
+    /**
+    * Pop-up alert handler
+    * @return {void}
+    */
+    public alertHandler(inputErrorCode, data?) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 'error_too_many_seed_accounts':
+                this.$store.dispatch('notification/ADD_ERROR', this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }));
+                break;
+            case 'error_private_key_already_exists':
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('error_private_key_already_exists', { name: data.name }));
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed') + inputErrorCode);
+                break;
         }
     }
 
@@ -250,13 +286,8 @@ export class FormSubAccountCreationTs extends Vue {
     private deriveNextChildAccount(childAccountName: string): AccountModel | null {
         // - don't allow creating more than 10 accounts
         if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-            this.$store.dispatch(
-                'notification/ADD_ERROR',
-                this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, {
-                    maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER,
-                }),
-            );
-            return null;
+            throw ({ errorCode: 'error_too_many_seed_accounts' })
+            // return null;
         }
 
         if (this.isLedger) {
@@ -270,7 +301,10 @@ export class FormSubAccountCreationTs extends Vue {
                     this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
                     this.$emit('submit', this.formItems);
                 })
-                .catch((err) => console.log(err));
+                .catch((error) => {
+                    this.alertHandler(error.errorCode ? error.errorCode : error)
+                    console.error(error);
+                });
         } else {
             // - get next path
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
@@ -302,9 +336,14 @@ export class FormSubAccountCreationTs extends Vue {
 
     async importSubAccountFromLedger(childAccountName: string): Promise<AccountModel> | null {
         try {
-            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+            const ledgerService = new LedgerService()
+            const { isAppSupported } = await ledgerService.isAppSupported();
+            if (!isAppSupported) {
+                throw ({ errorCode: 2 })
+            }
             const accountService = new AccountService();
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
+            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
             const accountResult = await accountService.getLedgerPublicKeyByPath(this.networkType, nextPath);
             const publicKey = accountResult;
             const address = PublicAccount.createFromPublicKey(publicKey, this.networkType).address;
@@ -321,12 +360,12 @@ export class FormSubAccountCreationTs extends Vue {
                 path: nextPath,
                 isMultisig: false,
             };
-        } catch (e) {
+        } catch (error) {
             this.$store.dispatch('SET_UI_DISABLED', {
                 isDisabled: false,
                 message: '',
             });
-            this.$store.dispatch('notification/ADD_ERROR', 'conditions_not_satisfied');
+            throw error
         }
     }
 }

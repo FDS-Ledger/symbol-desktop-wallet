@@ -154,7 +154,38 @@ export class FormProfileCreationTs extends Vue {
     public resetValidations(): void {
         this.$refs && this.$refs.observer && this.$refs.observer.reset();
     }
-
+    /**
+        * Pop-up alert handler
+        * @return {void}
+        */
+    public alertHandler(inputErrorCode) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed') + inputErrorCode);
+                break;
+        }
+    }
     /**
      * Persist created account and redirect to next step
      * @return {void}
@@ -198,8 +229,8 @@ export class FormProfileCreationTs extends Vue {
                 })
                 .catch((error) => {
                     {
+                        this.alertHandler(error.errorCode ? error.errorCode : error)
                         console.error(error);
-                        this.$store.dispatch('notification/ADD_ERROR', 'conditions_not_satisfied');
                     }
                 });
         }
@@ -218,15 +249,14 @@ export class FormProfileCreationTs extends Vue {
      * @return {AccountModel}
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
-        const profileName = this.formItems.profileName;
-        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const ledgerService = new LedgerService()
         const { isAppSupported } = await ledgerService.isAppSupported();
         if (!isAppSupported) {
-            this.$store.dispatch('notification/ADD_INFO', 'please_update_symbol_bolos_app');
-            return null;
+            throw ({ errorCode: 2 })
         }
+        const profileName = this.formItems.profileName;
         const accountService = new AccountService();
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, AccountService.DEFAULT_ACCOUNT_PATH);
         const publicKey = accountResult;
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;

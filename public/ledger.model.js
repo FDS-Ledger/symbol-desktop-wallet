@@ -18,7 +18,7 @@ const BIPPath = require('bip32-path')
 const { NetworkType, Transaction, SignedTransaction, Convert, CosignatureSignedTransaction, AggregateTransaction } = require('symbol-sdk')
 
 
-const SUPPORT_VERSION = { LEDGER_MAJOR_VERSION: '0', LEDGER_MINOR_VERSION: '0', LEDGER_PATCH_VERSION: '4' };
+const SUPPORT_VERSION = { LEDGER_MAJOR_VERSION: '0', LEDGER_MINOR_VERSION: '0', LEDGER_PATCH_VERSION: '2' };
 const CLA_FIELD = 0xe0;
 /**
  * Symbol's API

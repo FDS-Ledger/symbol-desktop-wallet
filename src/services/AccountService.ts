@@ -286,19 +286,17 @@ export class AccountService {
      * @return {Promise<string>}
      */
     public async getLedgerPublicKeyByPath(networkType: NetworkType, path: string): Promise<string> {
-        try {
-            if (false === DerivationPathValidator.validate(path)) {
-                const errorMessage = 'Invalid derivation path: ' + path;
-                console.error(errorMessage);
-                throw new Error(errorMessage);
-            }
-            const ledgerService = new LedgerService();
-            const accountResult = await ledgerService.getAccount(path, networkType, true);
-            const { publicKey } = accountResult;
-            return publicKey;
-        } catch (error) {
-            console.error(error);
+
+        if (false === DerivationPathValidator.validate(path)) {
+            const errorMessage = 'Invalid derivation path: ' + path;
+            console.error(errorMessage);
+            throw new Error(errorMessage);
         }
+        const ledgerService = new LedgerService();
+        const accountResult = await ledgerService.getAccount(path, networkType, true);
+        const { publicKey } = accountResult;
+        return publicKey;
+
     }
 
     /**
@@ -309,24 +307,22 @@ export class AccountService {
      * @return {Promise<AccountModel>}
      */
     public async getLedgerAccountByPath(currentProfile: ProfileModel, networkType: NetworkType, path: string): Promise<AccountModel> {
-        try {
-            const publicKey = await this.getLedgerPublicKeyByPath(networkType, path);
-            const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
-            return {
-                id: SimpleObjectStorage.generateIdentifier(),
-                profileName: currentProfile.profileName,
-                name: currentProfile.profileName,
-                node: '',
-                type: AccountType.LEDGER,
-                address: address.plain(),
-                publicKey: publicKey.toUpperCase(),
-                encryptedPrivateKey: '',
-                path: path,
-                isMultisig: false,
-            };
-        } catch (error) {
-            console.error(error);
-        }
+
+        const publicKey = await this.getLedgerPublicKeyByPath(networkType, path);
+        const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
+        return {
+            id: SimpleObjectStorage.generateIdentifier(),
+            profileName: currentProfile.profileName,
+            name: currentProfile.profileName,
+            node: '',
+            type: AccountType.LEDGER,
+            address: address.plain(),
+            publicKey: publicKey.toUpperCase(),
+            encryptedPrivateKey: '',
+            path: path,
+            isMultisig: false,
+        };
+
     }
 
     /**
@@ -334,11 +330,9 @@ export class AccountService {
      * @return {AccountModel}
      */
     public async getDefaultLedgerAccount(currentProfile: ProfileModel, networkType: NetworkType): Promise<AccountModel> {
-        try {
-            return await this.getLedgerAccountByPath(currentProfile, networkType, AccountService.DEFAULT_ACCOUNT_PATH);
-        } catch (error) {
-            console.error(error);
-        }
+
+        return await this.getLedgerAccountByPath(currentProfile, networkType, AccountService.DEFAULT_ACCOUNT_PATH);
+
     }
 
     // public async getSimpleLedger(path: string): Promise<any> {

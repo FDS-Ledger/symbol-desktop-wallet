@@ -304,7 +304,41 @@ export class ModalTransactionConfirmationTs extends Vue {
         // - get transaction stage config
         return this.onSigner(new AccountTransactionSigner(account));
     }
-
+    /**
+    * Pop-up alert handler
+    * @return {void}
+    */
+    public alertHandler(inputErrorCode) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 26368:
+                this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed') + inputErrorCode);
+                break;
+        }
+    }
     /**
      * Hook called when child component FormProfileUnlock emits
      * the 'success' event.
@@ -326,7 +360,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
                     if (!res.success) {
-                        this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+                        this.alertHandler(res.error)
                     }
                 });
             });
@@ -336,6 +370,11 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
+                const ledgerService = new LedgerService()
+                const { isAppSupported } = await ledgerService.isAppSupported();
+                if (!isAppSupported) {
+                    throw ({ errorCode: 2 })
+                }
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
                 const accountService = new AccountService();
@@ -350,7 +389,6 @@ export class ModalTransactionConfirmationTs extends Vue {
                 // - open signature modal
 
                 const txMode = this.command.mode;
-                const ledgerService = new LedgerService()
                 if (txMode == 'SIMPLE') {
                     stageTransactions.map(async (t) => {
                         const transaction = this.command.calculateSuggestedMaxFeeLedger(t);
@@ -358,27 +396,17 @@ export class ModalTransactionConfirmationTs extends Vue {
                             .signTransaction(currentPath, transaction, this.generationHash, ledgerAccount.publicKey)
                             .then((res: any) => {
                                 // - notify about successful transaction announce
-                                if (res.hash) {
-                                    this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
-                                    this.$emit('success');
-                                    this.onConfirmationSuccess();
-                                    const services = new TransactionAnnouncerService(this.$store);
-                                    services.announce(res);
-                                    this.show = false;
-                                } else {
-                                    if (res.statusCode == '26368') {
-                                        this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
-                                        this.show = false;
-                                    } else {
-                                        this.$store.dispatch('notification/ADD_ERROR', this.$t(res.message));
-                                        this.show = false;
-                                    }
-                                }
-                            })
-                            .catch((err) => {
-                                this.$store.dispatch('notification/ADD_ERROR', this.$t(err.message));
+                                this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
+                                this.$emit('success');
+                                this.onConfirmationSuccess();
+                                const services = new TransactionAnnouncerService(this.$store);
+                                services.announce(res);
                                 this.show = false;
-                            });
+                            }).catch((error) => {
+                                this.show = false;
+                                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
+                            })
+
                     });
                 } else if (txMode == 'AGGREGATE') {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
@@ -402,11 +430,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             services.announce(res);
                             this.show = false;
                         })
-                        .catch((err) => {
-                            console.error(err);
-                            this.$store.dispatch('notification/ADD_ERROR', 'transaction_cancel');
-                            this.show = false;
-                        });
+
                 } else {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                         AggregateTransaction.createBonded(
@@ -447,16 +471,15 @@ export class ModalTransactionConfirmationTs extends Vue {
                     announcements.forEach((announcement) => {
                         announcement.subscribe((res) => {
                             if (!res.success) {
-                                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+                                this.alertHandler(res.error)
                             }
                         });
                     });
                     this.show = false;
                 }
             } catch (error) {
-                // }
-                this.$store.dispatch('notification/ADD_ERROR', 'please_check_device_connection');
                 this.show = false;
+                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
             }
         }
     }
