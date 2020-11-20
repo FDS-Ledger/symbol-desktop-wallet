@@ -45,7 +45,7 @@
                     <MessageInput v-model="formItems.messagePlain" @input="onChangeMessage" />
                     <FormRow v-if="!selectedSigner.multisig && !isAggregate && !isLedger">
                         <template v-slot:inputs>
-                            <div class="inputs-container checkboxes">
+                            <div v-if="!isLedger" class="inputs-container checkboxes">
                                 <Checkbox v-model="formItems.encryptMessage" @input="onEncryptionChange">
                                     {{ $t('encrypt_message') }}
                                 </Checkbox>

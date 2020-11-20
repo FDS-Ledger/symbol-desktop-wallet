@@ -36,6 +36,8 @@ import { PageInfo } from '@/store/Transaction';
 // @ts-ignore
 import Pagination from '@/components/Pagination/Pagination.vue';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
+
 
 @Component({
     components: {
@@ -337,31 +339,29 @@ export class TransactionListTs extends Vue {
         this.hasTransactionExportModal = true;
     }
 
-    async signWithLedger(transaction: AggregateTransaction) {
-        this.$Notice.success({
-            title: this['$t']('Verify information in your device!') + '',
-        });
-        const currentPath = this.currentAccount.path;
-        const addr = this.currentAccount.address;
+    // async signWithLedger(transaction: AggregateTransaction) {
+    //     this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+    //     const currentPath = this.currentAccount.path;
+    //     const addr = this.currentAccount.address;
 
-        const accountService = new AccountService();
-        const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
-        const symbolLedger = await accountService.getSimpleLedger(currentPath);
-        const signature = await symbolLedger.signCosignatureTransaction(currentPath, transaction, signerPublicKey);
-        this.$store.dispatch(
-            'diagnostic/ADD_DEBUG',
-            `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
-                parentHash: signature.parentHash,
-                signature: signature.signature,
-            })}`,
-        );
+    //     const accountService = new AccountService();
+    //     const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
+    //     const ledgerService = new LedgerService()
+    //     const signature = await ledgerService.signCosignatureTransaction(currentPath, transaction, signerPublicKey);
+    //     this.$store.dispatch(
+    //         'diagnostic/ADD_DEBUG',
+    //         `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
+    //             parentHash: signature.parentHash,
+    //             signature: signature.signature,
+    //         })}`,
+    //     );
 
-        const res = await new TransactionAnnouncerService(this.$store).announceAggregateBondedCosignature(signature).toPromise();
-        if (res.success) {
-            this.$emit('success');
-            this.$emit('close');
-        } else {
-            this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
-        }
-    }
+    //     const res = await new TransactionAnnouncerService(this.$store).announceAggregateBondedCosignature(signature).toPromise();
+    //     if (res.success) {
+    //         this.$emit('success');
+    //         this.$emit('close');
+    //     } else {
+    //         this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
+    //     }
+    // }
 }

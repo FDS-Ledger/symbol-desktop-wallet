@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  *
  */
-import { createStepImage, importStepImage, officialIcons } from '@/views/resources/Images';
+import { createStepImage, importStepImage, officialIcons, accessLedgerStepImage } from '@/views/resources/Images';
 import { AppRoute } from './AppRoute';
 
 export const routes: AppRoute[] = [
@@ -150,6 +150,37 @@ export const routes: AppRoute[] = [
                                 },
                                 // @ts-ignore
                                 component: () => import('@/views/pages/profiles/import-profile/finalize/Finalize.vue'),
+                            },
+                        ],
+                    },
+                    {
+                        path: 'accessLedger',
+                        name: 'profiles.accessLedger',
+                        meta: { protected: false },
+                        // @ts-ignore
+                        component: () => import('@/views/pages/profiles/access-ledger/AccessLedger.vue'),
+                        children: [
+                            {
+                                path: 'info',
+                                name: 'profiles.accessLedger.info',
+                                meta: {
+                                    protected: false,
+                                    isLedger: true,
+                                    icon: accessLedgerStepImage.accessLedgerStepImage1,
+                                },
+                                // @ts-ignore
+                                component: () => import('@/views/forms/FormProfileCreation/FormProfileCreation.vue'),
+                            },
+                            {
+                                path: 'finishCreate',
+                                name: 'profiles.accessLedger.finalize',
+                                meta: {
+                                    protected: false,
+                                    isLedger: true,
+                                    icon: accessLedgerStepImage.accessLedgerStepImage2,
+                                },
+                                // @ts-ignore
+                                component: () => import('@/views/pages/profiles/access-ledger/finalize/Finalize.vue'),
                             },
                         ],
                     },

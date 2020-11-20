@@ -46,7 +46,7 @@
         </div>
 
         <div class="account-switch-footer-container">
-            <span type="button" class="add-account pointer button" @click="hasAddAccountModal = true">
+            <span v-if="isShowAddAccount" type="button" class="add-account pointer button" @click="hasAddAccountModal = true">
                 <img src="@/views/resources/img/newicons/Add.svg" class="icon-left-button" />
                 {{ $t('button_add_account') }}
             </span>

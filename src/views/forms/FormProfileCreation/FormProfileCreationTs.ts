@@ -34,6 +34,8 @@ import { FilterHelpers } from '@/core/utils/FilterHelpers';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService/LedgerService';
+
 
 /// end-region custom types
 
@@ -152,7 +154,38 @@ export class FormProfileCreationTs extends Vue {
     public resetValidations(): void {
         this.$refs && this.$refs.observer && this.$refs.observer.reset();
     }
-
+    /**
+        * Pop-up alert handler
+        * @return {void}
+        */
+    public alertHandler(inputErrorCode) {
+        switch (inputErrorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 2:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed') + inputErrorCode);
+                break;
+        }
+    }
     /**
      * Persist created account and redirect to next step
      * @return {void}
@@ -195,12 +228,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$router.push({ name: 'profiles.accessLedger.finalize' });
                 })
                 .catch((error) => {
-                    {
-                        console.error(error);
-                        this.$Notice.error({
-                            title: this['$t']('CONDITIONS_OF_USE_NOT_SATISFIED') + '',
-                        });
-                    }
+                    this.alertHandler(error.errorCode ? error.errorCode : error)
                 });
         }
     }
@@ -218,19 +246,14 @@ export class FormProfileCreationTs extends Vue {
      * @return {AccountModel}
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
-        const profileName = this.formItems.profileName;
-        this.$Notice.success({
-            title: this['$t']('Verify information in your device!') + '',
-        });
-        const accountService = new AccountService();
-        const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
-        const appSupported = await symbolLedger.isAppSupported();
-        if (!appSupported) {
-            this.$Notice.info({
-                title: this['$t']('Please update your Symbol BOLOS app!') + '',
-            });
-            return null;
+        const ledgerService = new LedgerService()
+        const { isAppSupported } = await ledgerService.isAppSupported();
+        if (!isAppSupported) {
+            throw ({ errorCode: 2 })
         }
+        const profileName = this.formItems.profileName;
+        const accountService = new AccountService();
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, AccountService.DEFAULT_ACCOUNT_PATH);
         const publicKey = accountResult;
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
