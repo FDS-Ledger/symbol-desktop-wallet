@@ -15,7 +15,6 @@
  */
 import { Account, PublicAccount, Address, NetworkType, Password, SimpleWallet, Crypto } from 'symbol-sdk';
 import { ExtendedKey, MnemonicPassPhrase, Wallet } from 'symbol-hd-wallets';
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 // internal dependencies
 import { DerivationPathLevels, DerivationService } from './DerivationService';
 import { DerivationPathValidator } from '@/core/validation/validators';
@@ -297,7 +296,6 @@ export class AccountService {
      * @return {Promise<string>}
      */
     public async getLedgerPublicKeyByPath(networkType: NetworkType, path: string): Promise<string> {
-
         if (false === DerivationPathValidator.validate(path)) {
             const errorMessage = 'Invalid derivation path: ' + path;
             console.error(errorMessage);
@@ -307,7 +305,6 @@ export class AccountService {
         const accountResult = await ledgerService.getAccount(path, networkType, true);
         const { publicKey } = accountResult;
         return publicKey;
-
     }
 
     /**
@@ -318,7 +315,6 @@ export class AccountService {
      * @return {Promise<AccountModel>}
      */
     public async getLedgerAccountByPath(currentProfile: ProfileModel, networkType: NetworkType, path: string): Promise<AccountModel> {
-
         const publicKey = await this.getLedgerPublicKeyByPath(networkType, path);
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
         return {
@@ -333,7 +329,6 @@ export class AccountService {
             path: path,
             isMultisig: false,
         };
-
     }
 
     /**
@@ -341,24 +336,6 @@ export class AccountService {
      * @return {AccountModel}
      */
     public async getDefaultLedgerAccount(currentProfile: ProfileModel, networkType: NetworkType): Promise<AccountModel> {
-
         return await this.getLedgerAccountByPath(currentProfile, networkType, AccountService.DEFAULT_ACCOUNT_PATH);
-
     }
-
-    // public async getSimpleLedger(path: string): Promise<any> {
-    //     try {
-    //         if (false === DerivationPathValidator.validate(path)) {
-    //             const errorMessage = 'Invalid derivation path: ' + path;
-    //             console.error(errorMessage);
-    //             throw new Error(errorMessage);
-    //         }
-    //         const transport = await TransportWebUSB.create();
-    //         const symbolLedger = new SymbolLedger(transport, 'XYM');
-    //         return symbolLedger;
-    //         transport.close();
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // }
 }

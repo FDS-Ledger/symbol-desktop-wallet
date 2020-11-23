@@ -15,10 +15,10 @@
  */
 // internal dependencies
 const BIPPath = require('bip32-path')
-const { NetworkType, Transaction, SignedTransaction, Convert, CosignatureSignedTransaction, AggregateTransaction } = require('symbol-sdk')
+const { Transaction, SignedTransaction, Convert, CosignatureSignedTransaction } = require('symbol-sdk')
 
 
-const SUPPORT_VERSION = { LEDGER_MAJOR_VERSION: '0', LEDGER_MINOR_VERSION: '0', LEDGER_PATCH_VERSION: '2' };
+const SUPPORT_VERSION = { LEDGER_MAJOR_VERSION: '0', LEDGER_MINOR_VERSION: '0', LEDGER_PATCH_VERSION: '4' };
 const CLA_FIELD = 0xe0;
 /**
  * Symbol's API
@@ -30,8 +30,6 @@ const CLA_FIELD = 0xe0;
  */
 
 exports.SymbolLedger = class SymbolLedger {
-    transport;
-
     constructor(transport, scrambleKey) {
         this.transport = transport;
         transport.decorateAppAPIMethods(
@@ -141,11 +139,10 @@ exports.SymbolLedger = class SymbolLedger {
      * @return a signed Transaction which is signed by account at path on Ledger
      */
     async signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey) {
-
         const rawPayload = transferTransaction.serialize;
         const signingBytes = networkGenerationHash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
-        const response = await this.ledgerMessageHandler(path, rawTx)
+        const response = await this.ledgerMessageHandler(path, rawTx);
         // Response from Ledger
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
@@ -160,7 +157,6 @@ exports.SymbolLedger = class SymbolLedger {
             transferTransaction.transaction.network,
         );
         return signedTransaction;
-
     }
 
     /**
@@ -175,7 +171,7 @@ exports.SymbolLedger = class SymbolLedger {
         const rawPayload = cosignatureTransaction.serialize;
         const signingBytes = cosignatureTransaction.transaction.hash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
-        const response = await this.ledgerMessageHandler(path, rawTx)
+        const response = await this.ledgerMessageHandler(path, rawTx);
         // Response from Ledger
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
@@ -238,4 +234,4 @@ exports.SymbolLedger = class SymbolLedger {
             return response;
         }
     }
-}
+};

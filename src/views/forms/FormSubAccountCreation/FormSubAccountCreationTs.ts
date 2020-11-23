@@ -218,7 +218,7 @@ export class FormSubAccountCreationTs extends Vue {
             // Verify that the import is repeated
             const hasAddressInfo = this.knownAccounts.find((w) => w.address === subAccount.address);
             if (hasAddressInfo !== undefined) {
-                throw ({ errorCode: 'error_private_key_already_exists', data: { name: hasAddressInfo.name } })
+                throw { errorCode: 'error_private_key_already_exists', data: { name: hasAddressInfo.name } };
             }
 
             // - remove password before GC
@@ -234,13 +234,13 @@ export class FormSubAccountCreationTs extends Vue {
             this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
             this.$emit('submit', this.formItems);
         } catch (error) {
-            this.alertHandler(error.errorCode ? error.errorCode : error, error.data)
+            this.alertHandler(error.errorCode ? error.errorCode : error, error.data);
         }
     }
     /**
-    * Pop-up alert handler
-    * @return {void}
-    */
+     * Pop-up alert handler
+     * @return {void}
+     */
     public alertHandler(inputErrorCode, data?) {
         switch (inputErrorCode) {
             case 'NoDevice':
@@ -262,7 +262,10 @@ export class FormSubAccountCreationTs extends Vue {
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
                 break;
             case 'error_too_many_seed_accounts':
-                this.$store.dispatch('notification/ADD_ERROR', this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }));
+                this.$store.dispatch(
+                    'notification/ADD_ERROR',
+                    this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }),
+                );
                 break;
             case 'error_private_key_already_exists':
                 this.$store.dispatch('notification/ADD_ERROR', this.$t('error_private_key_already_exists', data));
@@ -284,7 +287,7 @@ export class FormSubAccountCreationTs extends Vue {
         try {
             // - don't allow creating more than 10 accounts
             if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-                throw ({ errorCode: 'error_too_many_seed_accounts' })
+                throw { errorCode: 'error_too_many_seed_accounts' };
             }
 
             if (this.isLedger) {
@@ -299,7 +302,7 @@ export class FormSubAccountCreationTs extends Vue {
                         this.$emit('submit', this.formItems);
                     })
                     .catch((error) => {
-                        this.alertHandler(error.errorCode ? error.errorCode : error)
+                        this.alertHandler(error.errorCode ? error.errorCode : error);
                     });
             } else {
                 // - get next path
@@ -323,8 +326,8 @@ export class FormSubAccountCreationTs extends Vue {
                 );
             }
         } catch (error) {
-            this.alertHandler(error.errorCode ? error.errorCode : error, error.data)
-            return null
+            this.alertHandler(error.errorCode ? error.errorCode : error, error.data);
+            return null;
         }
     }
     /**
@@ -336,10 +339,10 @@ export class FormSubAccountCreationTs extends Vue {
 
     async importSubAccountFromLedger(childAccountName: string): Promise<AccountModel> | null {
         try {
-            const ledgerService = new LedgerService()
+            const ledgerService = new LedgerService();
             const { isAppSupported } = await ledgerService.isAppSupported();
             if (!isAppSupported) {
-                throw ({ errorCode: 2 })
+                throw { errorCode: 2 };
             }
             const accountService = new AccountService();
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
@@ -365,7 +368,7 @@ export class FormSubAccountCreationTs extends Vue {
                 isDisabled: false,
                 message: '',
             });
-            throw error
+            throw error;
         }
     }
 }

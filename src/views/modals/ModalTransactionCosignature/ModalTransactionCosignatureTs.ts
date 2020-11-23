@@ -197,10 +197,11 @@ export class ModalTransactionCosignatureTs extends Vue {
         return this.onSigner(new AccountTransactionSigner(account));
     }
     /**
-    * Pop-up alert handler
-    * @return {void}
-    */
-    public alertHandler(inputErrorCode) {
+     * Pop-up alert handler
+     * @param {any} inputErrorCode input error code
+     * @return {void}
+     */
+    public alertHandler(inputErrorCode: any) {
         switch (inputErrorCode) {
             case 'NoDevice':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
@@ -235,10 +236,10 @@ export class ModalTransactionCosignatureTs extends Vue {
         // - sign cosignature transaction
         if (this.currentAccount.type === AccountType.LEDGER) {
             try {
-                const ledgerService = new LedgerService()
+                const ledgerService = new LedgerService();
                 const { isAppSupported } = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
-                    throw ({ errorCode: 2 })
+                    throw { errorCode: 2 };
                 }
                 const currentPath = this.currentAccount.path;
                 const addr = this.currentAccount.address;
@@ -258,11 +259,11 @@ export class ModalTransactionCosignatureTs extends Vue {
                     this.$emit('success');
                     this.$emit('close');
                 } else {
-                    this.alertHandler(res.error)
+                    this.alertHandler(res.error);
                 }
             } catch (error) {
                 this.show = false;
-                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
+                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
             }
         } else {
             const cosignature = CosignatureTransaction.create(this.transaction);
@@ -274,7 +275,7 @@ export class ModalTransactionCosignatureTs extends Vue {
                 this.$emit('success');
                 this.show = false;
             } else {
-                this.alertHandler(res.error)
+                this.alertHandler(res.error);
             }
         }
     }

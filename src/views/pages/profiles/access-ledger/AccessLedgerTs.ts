@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and limitations under the License.
  *
  */
-import { Component, Vue, Watch } from 'vue-property-decorator';
+import { Component, Vue } from 'vue-property-decorator';
 import { Formatters } from '@/core/utils/Formatters';
 import { mapGetters } from 'vuex';
-import { MnemonicPassPhrase } from 'symbol-hd-wallets';
-import { AccountInfo, Address, MosaicId, RepositoryFactory } from 'symbol-sdk';
+import { Address, MosaicId } from 'symbol-sdk';
 import { ProfileModel } from '@/core/database/entities/ProfileModel';
 import { AccountService } from '@/services/AccountService';
 

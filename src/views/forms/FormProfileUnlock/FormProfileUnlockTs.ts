@@ -28,7 +28,6 @@ import FormRow from '@/components/FormRow/FormRow.vue';
 // @ts-ignore
 import ErrorTooltip from '@/components/ErrorTooltip/ErrorTooltip.vue';
 import { ProfileService } from '@/services/ProfileService';
-import { NotificationType } from '@/core/utils/NotificationType';
 
 @Component({
     components: {
@@ -101,19 +100,17 @@ export class FormProfileUnlockTs extends Vue {
     public processVerification() {
         try {
             const password = new Password(this.formItems.password);
-            const passwordHash = ProfileService.getPasswordHash(new Password(this.formItems.password));
-            // read account's password hash and compare
-            const currentProfile = this.accountService.getProfileByName(this.currentAccount.profileName);
-            const accountPass = currentProfile.password;
+            if (this.isLedger) {
+                const passwordHash = ProfileService.getPasswordHash(new Password(this.formItems.password));
+                // read account's password hash and compare
+                const currentProfile = this.accountService.getProfileByName(this.currentAccount.profileName);
+                const accountPass = currentProfile.password;
 
-            if (accountPass !== passwordHash) {
-                return this.$store.dispatch('notification/ADD_ERROR', NotificationType.WRONG_PASSWORD_ERROR);
-            }
-
-            if (this.isLedger && accountPass == passwordHash) {
-                const publicKey = this.currentAccount.publicKey;
-                const addr = Address.createFromPublicKey(publicKey, this.networkType);
-                return this.$emit('success', { account: this.currentAccount, addr, password });
+                if (accountPass == passwordHash) {
+                    const publicKey = this.currentAccount.publicKey;
+                    const addr = Address.createFromPublicKey(publicKey, this.networkType);
+                    return this.$emit('success', { account: this.currentAccount, addr, password });
+                }
             } else {
                 const privateKey: string = Crypto.decrypt(this.currentAccount.encryptedPrivateKey, password.value);
 

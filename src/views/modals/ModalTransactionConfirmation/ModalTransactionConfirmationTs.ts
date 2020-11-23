@@ -305,9 +305,9 @@ export class ModalTransactionConfirmationTs extends Vue {
         return this.onSigner(new AccountTransactionSigner(account));
     }
     /**
-    * Pop-up alert handler
-    * @return {void}
-    */
+     * Pop-up alert handler
+     * @return {void}
+     */
     public alertHandler(inputErrorCode) {
         switch (inputErrorCode) {
             case 'NoDevice':
@@ -360,7 +360,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
                     if (!res.success) {
-                        this.alertHandler(res.error)
+                        this.alertHandler(res.error);
                     }
                 });
             });
@@ -370,10 +370,10 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
-                const ledgerService = new LedgerService()
+                const ledgerService = new LedgerService();
                 const { isAppSupported } = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
-                    throw ({ errorCode: 2 })
+                    throw { errorCode: 2 };
                 }
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
@@ -392,7 +392,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 if (txMode == 'SIMPLE') {
                     stageTransactions.map(async (t) => {
                         const transaction = this.command.calculateSuggestedMaxFeeLedger(t);
-                        await ledgerService
+                        ledgerService
                             .signTransaction(currentPath, transaction, this.generationHash, ledgerAccount.publicKey)
                             .then((res: any) => {
                                 // - notify about successful transaction announce
@@ -402,11 +402,11 @@ export class ModalTransactionConfirmationTs extends Vue {
                                 const services = new TransactionAnnouncerService(this.$store);
                                 services.announce(res);
                                 this.show = false;
-                            }).catch((error) => {
-                                this.show = false;
-                                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
                             })
-
+                            .catch((error) => {
+                                this.show = false;
+                                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                            });
                     });
                 } else if (txMode == 'AGGREGATE') {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
@@ -419,7 +419,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         ),
                     );
 
-                    await ledgerService
+                    ledgerService
                         .signTransaction(currentPath, aggregate, this.generationHash, ledgerAccount.publicKey)
                         .then((res) => {
                             // - notify about successful transaction announce
@@ -430,6 +430,10 @@ export class ModalTransactionConfirmationTs extends Vue {
                             services.announce(res);
                             this.show = false;
                         })
+                        .catch((error) => {
+                            this.show = false;
+                            this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                        });
                 } else {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                         AggregateTransaction.createBonded(
@@ -470,7 +474,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                     announcements.forEach((announcement) => {
                         announcement.subscribe((res) => {
                             if (!res.success) {
-                                this.alertHandler(res.error)
+                                this.alertHandler(res.error);
                             }
                         });
                     });
@@ -478,7 +482,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 }
             } catch (error) {
                 this.show = false;
-                this.alertHandler(error.errorCode ? error.errorCode : (error.message ? error.message : error))
+                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
             }
         }
     }

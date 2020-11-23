@@ -10,18 +10,16 @@ export class LedgerService {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-
             });
             const data = await result.json();
             // handle error code
             if (data.statusCode || data.id) {
-                throw ({ errorCode: data.statusCode || data.id })
+                throw { errorCode: data.statusCode || data.id };
             }
             const { isAppSupported } = data;
             return { isAppSupported };
-
         } catch (error) {
-            throw error.errorCode ? error : { errorCode: 'bridge_problem' }
+            throw error.errorCode ? error : { errorCode: 'bridge_problem' };
         }
     }
 
@@ -29,7 +27,7 @@ export class LedgerService {
         const param = {
             currentPath,
             networkType,
-            display
+            display,
         };
         try {
             const host = 'http://localhost:6789';
@@ -43,13 +41,12 @@ export class LedgerService {
             const data = await result.json();
             // handle error code
             if (data.statusCode || data.id) {
-                throw ({ errorCode: data.statusCode || data.id })
+                throw { errorCode: data.statusCode || data.id };
             }
-            const { /*address,*/ publicKey, /*path*/ } = data;
-            return { /*address,*/ publicKey, /*path*/ };
-
+            const { /*address,*/ publicKey /*path*/ } = data;
+            return { /*address,*/ publicKey /*path*/ };
         } catch (error) {
-            throw error.errorCode ? error : { errorCode: 'bridge_problem' }
+            throw error.errorCode ? error : { errorCode: 'bridge_problem' };
         }
     }
 
@@ -58,10 +55,10 @@ export class LedgerService {
             path,
             transferTransaction: {
                 ...transferTransaction.toJSON(),
-                serialize: transferTransaction.serialize()
+                serialize: transferTransaction.serialize(),
             },
             networkGenerationHash,
-            signerPublicKey
+            signerPublicKey,
         };
         try {
             const host = 'http://localhost:6789';
@@ -76,7 +73,7 @@ export class LedgerService {
             const data = await result.json();
             // handle error code
             if (data.statusCode || data.id) {
-                throw ({ errorCode: data.statusCode || data.id })
+                throw { errorCode: data.statusCode || data.id };
             }
             const signedTransaction = new SignedTransaction(
                 data.payload,
@@ -86,9 +83,8 @@ export class LedgerService {
                 transferTransaction.networkType,
             );
             return signedTransaction;
-
         } catch (error) {
-            throw error.errorCode ? error : { errorCode: 'bridge_problem' }
+            throw error.errorCode ? error : { errorCode: 'bridge_problem' };
         }
     }
 
@@ -98,9 +94,9 @@ export class LedgerService {
             path,
             cosignatureTransaction: {
                 transaction: { hash: transactionHash },
-                serialize: cosignatureTransaction.serialize()
+                serialize: cosignatureTransaction.serialize(),
             },
-            signerPublicKey
+            signerPublicKey,
         };
         try {
             const host = 'http://localhost:6789';
@@ -115,14 +111,12 @@ export class LedgerService {
             const data = await result.json();
             // handle error code
             if (data.statusCode || data.id) {
-                throw ({ errorCode: data.statusCode || data.id })
+                throw { errorCode: data.statusCode || data.id };
             }
             const signedTransaction = new CosignatureSignedTransaction(transactionHash, data.signature, data.signerPublicKey);
             return signedTransaction;
-            
         } catch (error) {
-            throw error.errorCode ? error : { errorCode: 'bridge_problem' }
+            throw error.errorCode ? error : { errorCode: 'bridge_problem' };
         }
     }
 }
-

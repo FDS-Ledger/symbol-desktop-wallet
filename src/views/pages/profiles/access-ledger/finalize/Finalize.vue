@@ -2,9 +2,6 @@
     <div class="finish-sec scroll" @keyup.enter="submit">
         <div class="finish-col">
             <div class="finish-left">
-                <p class="text1">
-                    {{ $t('safe_storage_tips') }}
-                </p>
                 <div class="buttons clear">
                     <div class="float-right mt-3">
                         <button type="button" class="solid-button button-style fat-button create-account-style" @click="$router.back()">

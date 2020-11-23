@@ -149,14 +149,6 @@ export class AccountSelectorPanelTs extends Vue {
         // return this.addressesBalances
     }
 
-    public get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
-    }
-
-    public get isShowAddAccount(): boolean {
-        return this.isLedger || !this.isPrivateKeyProfile;
-    }
-
     public get currentAccountIdentifier(): string {
         return !this.currentAccount ? '' : this.currentAccount.id;
     }

@@ -66,7 +66,7 @@ import { BroadcastResult } from '@/core/transactions/BroadcastResult';
 import { AccountModel } from '@/core/database/entities/AccountModel';
 import { NodeModel } from '@/core/database/entities/NodeModel';
 import { MosaicModel } from '@/core/database/entities/MosaicModel';
-import { TransactionCommand, TransactionCommandMode } from '@/services/TransactionCommand';
+
 export enum HarvestingAction {
     START = 1,
     STOP = 2,
@@ -180,7 +180,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
     protected getKeyLinkTransactions(transactionSigner = this.tempTransactionSigner): Observable<Transaction[]> {
         const maxFee = UInt64.fromUint(feesConfig.highest); // fixed to the Highest, txs must get confirmed
         const txs: Transaction[] = [];
-        const txsToBeAggregated: Transaction[] = [];
 
         /*
          LINK
@@ -195,7 +194,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 LinkAction.Unlink,
                 maxFee,
             );
-            txsToBeAggregated.push(accountKeyUnLinkTx);
+            txs.push(accountKeyUnLinkTx);
         }
 
         if (this.isVrfKeyLinked) {
@@ -204,7 +203,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 LinkAction.Unlink,
                 maxFee,
             );
-            txsToBeAggregated.push(vrfKeyUnLinkTx);
+            txs.push(vrfKeyUnLinkTx);
         }
 
         if (this.isNodeKeyLinked) {
@@ -214,7 +213,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 maxFee,
             );
 
-            txsToBeAggregated.push(nodeUnLinkTx);
+            txs.push(nodeUnLinkTx);
         }
 
         if (this.action !== HarvestingAction.STOP) {
@@ -410,13 +409,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             }
             Vue.set(this, 'activating', false);
         });
-    }
-
-    protected getTransactionCommandMode(transactions: Transaction[]): TransactionCommandMode {
-        if (this.action === HarvestingAction.STOP) {
-            return TransactionCommandMode.SIMPLE;
-        }
-        return TransactionCommandMode.CHAINED_BINARY;
     }
 
     private createAccountKeyLinkTx(publicKey: string, linkAction: LinkAction, maxFee: UInt64): AccountKeyLinkTransaction {

@@ -36,7 +36,6 @@ import { AccountModel, AccountType } from '@/core/database/entities/AccountModel
 import { AccountService } from '@/services/AccountService';
 import { LedgerService } from '@/services/LedgerService/LedgerService';
 
-
 /// end-region custom types
 
 @Component({
@@ -155,9 +154,9 @@ export class FormProfileCreationTs extends Vue {
         this.$refs && this.$refs.observer && this.$refs.observer.reset();
     }
     /**
-        * Pop-up alert handler
-        * @return {void}
-        */
+     * Pop-up alert handler
+     * @return {void}
+     */
     public alertHandler(inputErrorCode) {
         switch (inputErrorCode) {
             case 'NoDevice':
@@ -207,15 +206,18 @@ export class FormProfileCreationTs extends Vue {
         // use repository for storage
         this.accountService.saveProfile(account);
 
-        // execute store actions
-        this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
-        this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
-        this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
-
         if (!this.isLedger) {
+            // execute store actions
+            this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
+            this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
+            this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
+
             // flush and continue
             this.$router.push({ name: this.nextPage });
         } else {
+            // execute store actions
+            this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
+            this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
             this.importDefaultLedgerAccount(this.formItems.networkType)
                 .then((res) => {
                     this.ledgerAccountService.saveAccount(res);
@@ -228,7 +230,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$router.push({ name: 'profiles.accessLedger.finalize' });
                 })
                 .catch((error) => {
-                    this.alertHandler(error.errorCode ? error.errorCode : error)
+                    this.alertHandler(error.errorCode ? error.errorCode : error);
                 });
         }
     }
@@ -246,10 +248,10 @@ export class FormProfileCreationTs extends Vue {
      * @return {AccountModel}
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
-        const ledgerService = new LedgerService()
+        const ledgerService = new LedgerService();
         const { isAppSupported } = await ledgerService.isAppSupported();
         if (!isAppSupported) {
-            throw ({ errorCode: 2 })
+            throw { errorCode: 2 };
         }
         const profileName = this.formItems.profileName;
         const accountService = new AccountService();
