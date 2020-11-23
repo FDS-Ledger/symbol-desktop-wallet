@@ -15,7 +15,9 @@
  */
 import { Account, PublicAccount, Address, NetworkType, Password, SimpleWallet, Crypto } from 'symbol-sdk';
 import { ExtendedKey, MnemonicPassPhrase, Wallet } from 'symbol-hd-wallets';
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+// import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+const TransportNodeHid = window['TransportNodeHid'].default;
+
 
 // internal dependencies
 import { DerivationPathLevels, DerivationService } from './DerivationService';
@@ -348,7 +350,8 @@ export class AccountService {
                 console.error(errorMessage);
                 throw new Error(errorMessage);
             }
-            const transport = await TransportWebUSB.create();
+            // const transport = await TransportWebUSB.create();
+            const transport = await TransportNodeHid.open();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             return symbolLedger;
             transport.close();
