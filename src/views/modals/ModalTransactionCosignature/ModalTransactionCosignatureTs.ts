@@ -275,7 +275,7 @@ export class ModalTransactionCosignatureTs extends Vue {
                 this.$emit('success');
                 this.show = false;
             } else {
-                this.alertHandler(res.error);
+                this.$store.dispatch('notification/ADD_ERROR', res.error, { root: true });
             }
         }
     }

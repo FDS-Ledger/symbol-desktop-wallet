@@ -24,6 +24,7 @@ import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorag
 import { AccountModelStorage } from '@/core/database/storage/AccountModelStorage';
 import { LedgerService } from '@/services/LedgerService/LedgerService';
 import { NodeModel } from '@/core/database/entities/NodeModel';
+
 export class AccountService {
     private readonly storage = AccountModelStorage.INSTANCE;
 

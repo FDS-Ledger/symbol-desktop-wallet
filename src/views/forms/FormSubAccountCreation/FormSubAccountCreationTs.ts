@@ -66,6 +66,7 @@ export class FormSubAccountCreationTs extends Vue {
      * Currently active profile
      */
     public currentProfile: ProfileModel;
+
     /**
      * Currently active account
      */
@@ -167,7 +168,6 @@ export class FormSubAccountCreationTs extends Vue {
      */
     public onSubmit() {
         const values = { ...this.formItems };
-
         const type = values.type && ['child_account', 'privatekey_account'].includes(values.type) ? values.type : 'child_account';
         if (this.isLedger && type == 'child_account') {
             this.deriveNextChildAccount(values.name);
@@ -184,13 +184,13 @@ export class FormSubAccountCreationTs extends Vue {
      * When account is unlocked, the sub account can be created
      */
     public async onAccountUnlocked(account: Account, password: Password) {
+        this.currentPassword = password;
+
+        // - interpret form items
+        const values = { ...this.formItems };
+        const type = values.type && ['child_account', 'privatekey_account'].includes(values.type) ? values.type : 'child_account';
+
         try {
-            this.currentPassword = password;
-
-            // - interpret form items
-            const values = { ...this.formItems };
-            const type = values.type && ['child_account', 'privatekey_account'].includes(values.type) ? values.type : 'child_account';
-
             // - create sub account (can be either derived or by private key)
             let subAccount: AccountModel;
             switch (type) {
@@ -218,7 +218,11 @@ export class FormSubAccountCreationTs extends Vue {
             // Verify that the import is repeated
             const hasAddressInfo = this.knownAccounts.find((w) => w.address === subAccount.address);
             if (hasAddressInfo !== undefined) {
-                throw { errorCode: 'error_private_key_already_exists', data: { name: hasAddressInfo.name } };
+                this.$store.dispatch(
+                    'notification/ADD_ERROR',
+                    `This private key already exists. The account name is ${hasAddressInfo.name}`,
+                );
+                return null;
             }
 
             // - remove password before GC
@@ -261,12 +265,6 @@ export class FormSubAccountCreationTs extends Vue {
             case 27013:
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
                 break;
-            case 'error_too_many_seed_accounts':
-                this.$store.dispatch(
-                    'notification/ADD_ERROR',
-                    this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }),
-                );
-                break;
             case 'error_private_key_already_exists':
                 this.$store.dispatch('notification/ADD_ERROR', this.$t('error_private_key_already_exists', data));
                 break;
@@ -284,12 +282,18 @@ export class FormSubAccountCreationTs extends Vue {
      * @return {AccountModel}
      */
     private deriveNextChildAccount(childAccountName: string): AccountModel | null {
-        try {
-            // - don't allow creating more than 10 accounts
-            if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-                throw { errorCode: 'error_too_many_seed_accounts' };
-            }
+        // - don't allow creating more than 10 accounts
+        if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
+            this.$store.dispatch(
+                'notification/ADD_ERROR',
+                this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, {
+                    maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER,
+                }),
+            );
+            return null;
+        }
 
+        try {
             if (this.isLedger) {
                 this.importSubAccountFromLedger(childAccountName)
                     .then((res) => {
