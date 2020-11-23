@@ -237,10 +237,12 @@ export class FormSubAccountCreationTs extends Vue {
             await this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', this.currentProfile.accounts);
             this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
             this.$emit('submit', this.formItems);
-        } catch (error) {
-            this.alertHandler(error.errorCode ? error.errorCode : error, error.data);
+        } catch (e) {
+            this.$store.dispatch('notification/ADD_ERROR', 'An error happened, please try again.');
+            console.error(e);
         }
     }
+
     /**
      * Pop-up alert handler
      * @return {void}

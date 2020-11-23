@@ -5,7 +5,7 @@ const app = express()
 const TransportNodeHid = require('@ledgerhq/hw-transport-node-hid')
 const { SymbolLedger } = require('./ledger.model')
 const { NetworkType } = require('symbol-sdk')
-const Port = 6789;
+const Port = 21345;
 
 // Enable preflight requests for all routes
 
@@ -94,4 +94,3 @@ app.post('/ledger/signCosignature', async (req, res) => {
 });
 
 app.listen(Port, () => console.log(`Node server listening on port ${Port}!`));
-

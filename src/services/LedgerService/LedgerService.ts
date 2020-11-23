@@ -4,7 +4,7 @@ import { SignedTransaction, CosignatureSignedTransaction } from 'symbol-sdk';
 export class LedgerService {
     async isAppSupported() {
         try {
-            const host = 'http://localhost:6789';
+            const host = 'http://localhost:21345';
             const result = await fetch(host + '/ledger/isAppSupported/', {
                 method: 'GET',
                 headers: {
@@ -30,7 +30,7 @@ export class LedgerService {
             display,
         };
         try {
-            const host = 'http://localhost:6789';
+            const host = 'http://localhost:21345';
             const result = await fetch(host + '/ledger/account/', {
                 method: 'POST',
                 headers: {
@@ -61,7 +61,7 @@ export class LedgerService {
             signerPublicKey,
         };
         try {
-            const host = 'http://localhost:6789';
+            const host = 'http://localhost:21345';
             const result = await fetch(host + '/ledger/sign/', {
                 method: 'POST',
                 headers: {
@@ -99,7 +99,7 @@ export class LedgerService {
             signerPublicKey,
         };
         try {
-            const host = 'http://localhost:6789';
+            const host = 'http://localhost:21345';
             const result = await fetch(host + '/ledger/signCosignature/', {
                 method: 'POST',
                 headers: {
