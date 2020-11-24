@@ -23,7 +23,7 @@
     "ledger_device_locked": "Please unlock your Ledger device",
     "ledger_not_opened_app": "Please open XYM BOLOS app on your Ledger device",
     "ledger_not_using_xym_app": "You are not using XYM BOLOS app on your Ledger device",
-    "ledger_user_reject_request": "Request canceled by User",
+    "ledger_user_reject_request": "Request canceled by user",
     "ledger_not_supported_app": "Please check if you have an up-to-date XYM application open on your Ledger device",
     "alert_create_wallet_failed": "Failed to create wallet, reason: ",
     "alert_sign_transaction_failed": "Failed to sign transaction, reason: ",
