@@ -173,6 +173,7 @@ export class FormSubAccountCreationTs extends Vue {
             this.deriveNextChildAccount(values.name);
         } else {
             this.hasAccountUnlockModal = true;
+
             // // resets form validation
             // this.$nextTick(() => {
             //   this.$refs.observer.reset()
