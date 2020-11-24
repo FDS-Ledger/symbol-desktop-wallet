@@ -177,8 +177,12 @@ export class AccountSelectorPanelTs extends Vue {
         return this.knownAccounts.filter((_) => _.type === 1);
     }
 
+    public get ledgerAccount(): AccountModel[] {
+        return this.knownAccounts.filter((_) => _.type === 5);
+    }
+
     public get pkAccounts(): AccountModel[] {
-        return this.knownAccounts.filter((_) => _.type !== 1);
+        return this.knownAccounts.filter((_) => _.type !== 1 && _.type !== 5);
     }
 
     public get hasAddAccountModal(): boolean {
