@@ -164,7 +164,7 @@ export class FormProfileCreationTs extends Vue {
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
                 break;
             default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed', { reason: errorCode }));
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed', { reason: errorCode }));
                 break;
         }
     }
