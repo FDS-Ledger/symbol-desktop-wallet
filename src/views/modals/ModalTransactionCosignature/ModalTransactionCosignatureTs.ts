@@ -158,6 +158,42 @@ export class ModalTransactionCosignatureTs extends Vue {
         return new CosignatureQR(this.transaction, this.networkType, this.generationHash);
     }
 
+    /**
+     * Error notification handler
+     * @return {void}
+     */
+    public errorNotificationHandler(errorCode: any) {
+        switch (errorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 'ledger_not_supported_app':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            case 26368:
+                this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed', { reason: errorCode }));
+                break;
+        }
+    }
+
     @Watch('transactionHash', { immediate: true })
     public async fetchTransaction() {
         try {
@@ -196,42 +232,7 @@ export class ModalTransactionCosignatureTs extends Vue {
         this.$store.dispatch('diagnostic/ADD_INFO', 'Account ' + account.address.plain() + ' unlocked successfully.');
         return this.onSigner(new AccountTransactionSigner(account));
     }
-    /**
-     * Pop-up alert handler
-     * @param {any} inputErrorCode input error code
-     * @return {void}
-     */
-    public alertHandler(inputErrorCode: any) {
-        switch (inputErrorCode) {
-            case 'NoDevice':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                break;
-            case 'bridge_problem':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                break;
-            case 26628:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                break;
-            case 27904:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                break;
-            case 27264:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                break;
-            case 27013:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                break;
-            case 26368:
-                this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
-                break;
-            case 2:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                break;
-            default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed') + inputErrorCode);
-                break;
-        }
-    }
+
     public async onSigner(transactionSigner: TransactionSigner) {
         // - sign cosignature transaction
         if (this.currentAccount.type === AccountType.LEDGER) {
@@ -239,7 +240,7 @@ export class ModalTransactionCosignatureTs extends Vue {
                 const ledgerService = new LedgerService();
                 const { isAppSupported } = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
-                    throw { errorCode: 2 };
+                    throw { errorCode: 'ledger_not_supported_app' };
                 }
                 const currentPath = this.currentAccount.path;
                 const addr = this.currentAccount.address;
@@ -259,11 +260,11 @@ export class ModalTransactionCosignatureTs extends Vue {
                     this.$emit('success');
                     this.$emit('close');
                 } else {
-                    this.alertHandler(res.error);
+                    this.errorNotificationHandler(res.error);
                 }
             } catch (error) {
                 this.show = false;
-                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
             }
         } else {
             const cosignature = CosignatureTransaction.create(this.transaction);

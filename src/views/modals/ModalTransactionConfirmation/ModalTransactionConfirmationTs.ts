@@ -288,33 +288,22 @@ export class ModalTransactionConfirmationTs extends Vue {
         }
     }
     /// end-region computed properties getter/setter
-
-    /**
-     * Hook called when child component FormProfileUnlock emits
-     * the 'success' event.
-     *
-     * This hook shall *sign transactions* with the \a account
-     * that has been unlocked. Subsequently it will also announce
-     * the signed transaction.
-     *
-     */
-    public async onAccountUnlocked({ account }: { account: Account }): Promise<void> {
-        // - log about unlock success
-        this.$store.dispatch('diagnostic/ADD_INFO', `Account ${account.address.plain()} unlocked successfully.`);
-        // - get transaction stage config
-        return this.onSigner(new AccountTransactionSigner(account));
-    }
+    
     /**
      * Pop-up alert handler
      * @return {void}
      */
-    public alertHandler(inputErrorCode) {
-        switch (inputErrorCode) {
+    
+    public errorNotificationHandler(errorCode) {
+        switch (errorCode) {
             case 'NoDevice':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
                 break;
             case 'bridge_problem':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 'ledger_not_supported_app':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
                 break;
             case 26628:
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
@@ -331,13 +320,25 @@ export class ModalTransactionConfirmationTs extends Vue {
             case 26368:
                 this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
                 break;
-            case 2:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                break;
             default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed') + inputErrorCode);
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed', { reason: errorCode }));
                 break;
         }
+    }
+    /**
+     * Hook called when child component FormProfileUnlock emits
+     * the 'success' event.
+     *
+     * This hook shall *sign transactions* with the \a account
+     * that has been unlocked. Subsequently it will also announce
+     * the signed transaction.
+     *
+     */
+    public async onAccountUnlocked({ account }: { account: Account }): Promise<void> {
+        // - log about unlock success
+        this.$store.dispatch('diagnostic/ADD_INFO', `Account ${account.address.plain()} unlocked successfully.`);
+        // - get transaction stage config
+        return this.onSigner(new AccountTransactionSigner(account));
     }
     /**
      * Hook called when child component FormProfileUnlock emits
@@ -360,7 +361,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
                     if (!res.success) {
-                        this.alertHandler(res.error);
+                        this.errorNotificationHandler(res.error);
                     }
                 });
             });
@@ -373,7 +374,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 const ledgerService = new LedgerService();
                 const { isAppSupported } = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
-                    throw { errorCode: 2 };
+                    throw { errorCode: 'ledger_not_supported_app' };
                 }
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
@@ -405,7 +406,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             })
                             .catch((error) => {
                                 this.show = false;
-                                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                                this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
                             });
                     });
                 } else if (txMode == 'AGGREGATE') {
@@ -432,7 +433,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         })
                         .catch((error) => {
                             this.show = false;
-                            this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                            this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
                         });
                 } else {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
@@ -474,7 +475,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                     announcements.forEach((announcement) => {
                         announcement.subscribe((res) => {
                             if (!res.success) {
-                                this.alertHandler(res.error);
+                                this.errorNotificationHandler(res.error);
                             }
                         });
                     });
@@ -482,7 +483,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 }
             } catch (error) {
                 this.show = false;
-                this.alertHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
             }
         }
     }

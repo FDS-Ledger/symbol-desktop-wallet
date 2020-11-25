@@ -133,9 +133,40 @@ export class FormProfileCreationTs extends Vue {
     get nextPage() {
         return this.$route.meta.nextPage;
     }
-
     /// end-region computed properties getter/setter
 
+    /**
+     * Error notification handler
+     * @return {void}
+     */
+    public errorNotificationHandler(errorCode) {
+        switch (errorCode) {
+            case 'NoDevice':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                break;
+            case 'bridge_problem':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                break;
+            case 'ledger_not_supported_app':
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                break;
+            case 26628:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                break;
+            case 27904:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                break;
+            case 27264:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                break;
+            case 27013:
+                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                break;
+            default:
+                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed', { reason: errorCode }));
+                break;
+        }
+    }
     /**
      * Submit action, validates form and creates account in storage
      * @return {void}
@@ -152,38 +183,6 @@ export class FormProfileCreationTs extends Vue {
 
     public resetValidations(): void {
         this.$refs && this.$refs.observer && this.$refs.observer.reset();
-    }
-    /**
-     * Pop-up alert handler
-     * @return {void}
-     */
-    public alertHandler(inputErrorCode) {
-        switch (inputErrorCode) {
-            case 'NoDevice':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                break;
-            case 'bridge_problem':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                break;
-            case 26628:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                break;
-            case 27904:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                break;
-            case 27264:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                break;
-            case 27013:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                break;
-            case 2:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                break;
-            default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed') + inputErrorCode);
-                break;
-        }
     }
     /**
      * Persist created account and redirect to next step
@@ -230,7 +229,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$router.push({ name: 'profiles.accessLedger.finalize' });
                 })
                 .catch((error) => {
-                    this.alertHandler(error.errorCode ? error.errorCode : error);
+                    this.errorNotificationHandler(error.errorCode ? error.errorCode : error);
                 });
         }
     }
@@ -251,7 +250,7 @@ export class FormProfileCreationTs extends Vue {
         const ledgerService = new LedgerService();
         const { isAppSupported } = await ledgerService.isAppSupported();
         if (!isAppSupported) {
-            throw { errorCode: 2 };
+            throw { errorCode: 'ledger_not_supported_app' };
         }
         const profileName = this.formItems.profileName;
         const accountService = new AccountService();
