@@ -137,9 +137,10 @@ export class FormProfileCreationTs extends Vue {
 
     /**
      * Error notification handler
+     * @param {any} inputErrorCode
      * @return {void}
      */
-    public errorNotificationHandler(errorCode) {
+    public errorNotificationHandler(errorCode: any) {
         switch (errorCode) {
             case 'NoDevice':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
@@ -167,6 +168,7 @@ export class FormProfileCreationTs extends Vue {
                 break;
         }
     }
+
     /**
      * Submit action, validates form and creates account in storage
      * @return {void}

@@ -288,13 +288,13 @@ export class ModalTransactionConfirmationTs extends Vue {
         }
     }
     /// end-region computed properties getter/setter
-    
+
     /**
-     * Pop-up alert handler
+     * Error notification handler
+     * @param {any} inputErrorCode
      * @return {void}
      */
-    
-    public errorNotificationHandler(errorCode) {
+    public errorNotificationHandler(errorCode: any) {
         switch (errorCode) {
             case 'NoDevice':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
@@ -325,6 +325,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 break;
         }
     }
+
     /**
      * Hook called when child component FormProfileUnlock emits
      * the 'success' event.

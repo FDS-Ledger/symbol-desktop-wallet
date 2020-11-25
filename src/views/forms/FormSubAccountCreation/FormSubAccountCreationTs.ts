@@ -164,9 +164,10 @@ export class FormSubAccountCreationTs extends Vue {
 
     /**
      * Error notification handler
+     * @param {any} inputErrorCode
      * @return {void}
      */
-    public errorNotificationHandler(errorCode) {
+    public errorNotificationHandler(errorCode: any) {
         switch (errorCode) {
             case 'NoDevice':
                 this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
@@ -194,6 +195,7 @@ export class FormSubAccountCreationTs extends Vue {
                 break;
         }
     }
+
     /**
      * Submit action asks for account unlock
      * @return {void}
@@ -273,7 +275,10 @@ export class FormSubAccountCreationTs extends Vue {
         try {
             // - don't allow creating more than 10 accounts
             if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-                this.$store.dispatch('notification/ADD_ERROR', this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }));
+                this.$store.dispatch(
+                    'notification/ADD_ERROR',
+                    this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }),
+                );
                 return null;
             }
             if (this.isLedger) {
