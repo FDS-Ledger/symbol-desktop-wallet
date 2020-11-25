@@ -160,7 +160,7 @@ export class ModalTransactionCosignatureTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} inputErrorCode
+     * @param {any} errorCode
      * @return {void}
      */
     public errorNotificationHandler(errorCode: any) {
