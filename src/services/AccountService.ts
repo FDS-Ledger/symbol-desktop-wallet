@@ -15,8 +15,6 @@
  */
 import { Account, PublicAccount, Address, NetworkType, Password, SimpleWallet, Crypto } from 'symbol-sdk';
 import { ExtendedKey, MnemonicPassPhrase, Wallet } from 'symbol-hd-wallets';
-// import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
-const TransportNodeHid = window['TransportNodeHid'].default;
 // internal dependencies
 import { DerivationPathLevels, DerivationService } from './DerivationService';
 import { DerivationPathValidator } from '@/core/validation/validators';
@@ -24,7 +22,7 @@ import { AccountModel, AccountType } from '@/core/database/entities/AccountModel
 import { ProfileModel } from '@/core/database/entities/ProfileModel';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModelStorage } from '@/core/database/storage/AccountModelStorage';
-import { SymbolLedger } from '@/core/utils/Ledger';
+import { LedgerService } from '@/services/LedgerService';
 import { NodeModel } from '@/core/database/entities/NodeModel';
 
 export class AccountService {
@@ -304,8 +302,8 @@ export class AccountService {
             console.error(errorMessage);
             throw new Error(errorMessage);
         }
-        const symbolLedger = await this.getSimpleLedger(path);
-        const accountResult = await symbolLedger.getAccount(path, networkType, true);
+        const ledgerService = new LedgerService();
+        const accountResult = await ledgerService.getAccount(path, networkType, true);
         const { publicKey } = accountResult;
         return publicKey;
     }
@@ -340,22 +338,5 @@ export class AccountService {
      */
     public async getDefaultLedgerAccount(currentProfile: ProfileModel, networkType: NetworkType): Promise<AccountModel> {
         return await this.getLedgerAccountByPath(currentProfile, networkType, AccountService.DEFAULT_ACCOUNT_PATH);
-    }
-
-    public async getSimpleLedger(path: string): Promise<any> {
-        try {
-            if (false === DerivationPathValidator.validate(path)) {
-                const errorMessage = 'Invalid derivation path: ' + path;
-                console.error(errorMessage);
-                throw new Error(errorMessage);
-            }
-            // const transport = await TransportWebUSB.create();
-            const transport = await TransportNodeHid.open();
-            const symbolLedger = new SymbolLedger(transport, 'XYM');
-            return symbolLedger;
-            // transport.close();
-        } catch (error) {
-            throw { errorCode: error.statusCode || error.id || error };
-        }
     }
 }

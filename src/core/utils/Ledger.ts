@@ -40,27 +40,20 @@ export class SymbolLedger {
             scrambleKey,
         );
     }
-    private formatError(error) {
-        return { errorCode: error.statusCode || error.id || error };
-    }
     /**
      * Return true if app version is above the supported Symbol BOLOS app version
      * @return {boolean}
      */
     public async isAppSupported() {
-        try {
-            const appVersion = await this.getAppVersion();
-            if (appVersion.majorVersion < SUPPORT_VERSION.LEDGER_MAJOR_VERSION) {
-                return false;
-            } else if (appVersion.minorVersion < SUPPORT_VERSION.LEDGER_MINOR_VERSION) {
-                return false;
-            } else if (appVersion.patchVersion < SUPPORT_VERSION.LEDGER_PATCH_VERSION) {
-                return false;
-            } else {
-                return true;
-            }
-        } catch (error) {
-            throw this.formatError(error);
+        const appVersion = await this.getAppVersion();
+        if (appVersion.majorVersion < SUPPORT_VERSION.LEDGER_MAJOR_VERSION) {
+            return false;
+        } else if (appVersion.minorVersion < SUPPORT_VERSION.LEDGER_MINOR_VERSION) {
+            return false;
+        } else if (appVersion.patchVersion < SUPPORT_VERSION.LEDGER_PATCH_VERSION) {
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -104,41 +97,37 @@ export class SymbolLedger {
      * const { publicKey } = result;
      */
     async getAccount(path: string, networkType: number, display: boolean) {
-        try {
-            const GET_ACCOUNT_INS_FIELD = 0x02;
-            const chainCode = false;
-            const ed25519 = true;
+        const GET_ACCOUNT_INS_FIELD = 0x02;
+        const chainCode = false;
+        const ed25519 = true;
 
-            const bipPath = BIPPath.fromString(path).toPathArray();
-            const curveMask = ed25519 ? 0x80 : 0x40;
+        const bipPath = BIPPath.fromString(path).toPathArray();
+        const curveMask = ed25519 ? 0x80 : 0x40;
 
-            // APDU fields configuration
-            const apdu = {
-                cla: CLA_FIELD,
-                ins: GET_ACCOUNT_INS_FIELD,
-                p1: display ? 0x01 : 0x00,
-                p2: curveMask | (chainCode ? 0x01 : 0x00),
-                data: Buffer.alloc(1 + bipPath.length * 4 + 1),
-            };
+        // APDU fields configuration
+        const apdu = {
+            cla: CLA_FIELD,
+            ins: GET_ACCOUNT_INS_FIELD,
+            p1: display ? 0x01 : 0x00,
+            p2: curveMask | (chainCode ? 0x01 : 0x00),
+            data: Buffer.alloc(1 + bipPath.length * 4 + 1),
+        };
 
-            apdu.data.writeInt8(bipPath.length, 0);
-            bipPath.forEach((segment, index) => {
-                apdu.data.writeUInt32BE(segment, 1 + index * 4);
-            });
-            apdu.data.writeUInt8(networkType, 1 + bipPath.length * 4);
+        apdu.data.writeInt8(bipPath.length, 0);
+        bipPath.forEach((segment, index) => {
+            apdu.data.writeUInt32BE(segment, 1 + index * 4);
+        });
+        apdu.data.writeUInt8(networkType, 1 + bipPath.length * 4);
 
-            // Response from Ledger
-            const response = await this.transport.send(apdu.cla, apdu.ins, apdu.p1, apdu.p2, apdu.data);
-            const result = {
-                publicKey: '',
-            };
+        // Response from Ledger
+        const response = await this.transport.send(apdu.cla, apdu.ins, apdu.p1, apdu.p2, apdu.data);
+        const result = {
+            publicKey: '',
+        };
 
-            const publicKeyLength = response[0];
-            result.publicKey = response.slice(1, 1 + publicKeyLength).toString('hex');
-            return result;
-        } catch (error) {
-            throw this.formatError(error);
-        }
+        const publicKeyLength = response[0];
+        result.publicKey = response.slice(1, 1 + publicKeyLength).toString('hex');
+        return result;
     }
 
     /**
@@ -151,28 +140,24 @@ export class SymbolLedger {
      * @return a signed Transaction which is signed by account at path on Ledger
      */
     public async signTransaction(path: string, transferTransaction: any, networkGenerationHash: string, signerPublicKey: string) {
-        try {
-            const rawPayload = transferTransaction.serialize();
-            const signingBytes = networkGenerationHash + rawPayload.slice(216);
-            const rawTx = Buffer.from(signingBytes, 'hex');
-            const response = await this.ledgerMessageHandler(path, rawTx);
-            // Response from Ledger
-            const h = response.toString('hex');
-            const signature = h.slice(0, 128);
-            const payload = rawPayload.slice(0, 16) + signature + signerPublicKey + rawPayload.slice(16 + 128 + 64, rawPayload.length);
-            const generationHashBytes = Array.from(Convert.hexToUint8(networkGenerationHash));
-            const transactionHash = Transaction.createTransactionHash(payload, generationHashBytes);
-            const signedTransaction = new SignedTransaction(
-                payload,
-                transactionHash,
-                signerPublicKey,
-                transferTransaction.type,
-                transferTransaction.networkType,
-            );
-            return signedTransaction;
-        } catch (error) {
-            throw this.formatError(error);
-        }
+        const rawPayload = transferTransaction.serialize();
+        const signingBytes = networkGenerationHash + rawPayload.slice(216);
+        const rawTx = Buffer.from(signingBytes, 'hex');
+        const response = await this.ledgerMessageHandler(path, rawTx);
+        // Response from Ledger
+        const h = response.toString('hex');
+        const signature = h.slice(0, 128);
+        const payload = rawPayload.slice(0, 16) + signature + signerPublicKey + rawPayload.slice(16 + 128 + 64, rawPayload.length);
+        const generationHashBytes = Array.from(Convert.hexToUint8(networkGenerationHash));
+        const transactionHash = Transaction.createTransactionHash(payload, generationHashBytes);
+        const signedTransaction = new SignedTransaction(
+            payload,
+            transactionHash,
+            signerPublicKey,
+            transferTransaction.type,
+            transferTransaction.networkType,
+        );
+        return signedTransaction;
     }
 
     /**
@@ -184,23 +169,19 @@ export class SymbolLedger {
      * @return a Signed Cosignature Transaction
      */
     public async signCosignatureTransaction(path: string, cosignatureTransaction: AggregateTransaction, signerPublicKey: string) {
-        try {
-            const rawPayload = cosignatureTransaction.serialize();
-            const signingBytes = cosignatureTransaction.transactionInfo.hash + rawPayload.slice(216);
-            const rawTx = Buffer.from(signingBytes, 'hex');
-            const response = await this.ledgerMessageHandler(path, rawTx);
-            // Response from Ledger
-            const h = response.toString('hex');
-            const signature = h.slice(0, 128);
-            const cosignatureSignedTransaction = new CosignatureSignedTransaction(
-                cosignatureTransaction.transactionInfo.hash,
-                signature,
-                signerPublicKey,
-            );
-            return cosignatureSignedTransaction;
-        } catch (error) {
-            throw this.formatError(error);
-        }
+        const rawPayload = cosignatureTransaction.serialize();
+        const signingBytes = cosignatureTransaction.transactionInfo.hash + rawPayload.slice(216);
+        const rawTx = Buffer.from(signingBytes, 'hex');
+        const response = await this.ledgerMessageHandler(path, rawTx);
+        // Response from Ledger
+        const h = response.toString('hex');
+        const signature = h.slice(0, 128);
+        const cosignatureSignedTransaction = new CosignatureSignedTransaction(
+            cosignatureTransaction.transactionInfo.hash,
+            signature,
+            signerPublicKey,
+        );
+        return cosignatureSignedTransaction;
     }
     /**
      * handle sending and receiving packages between Ledger and Wallet

@@ -22,6 +22,7 @@ import { ValidationRuleset } from '@/core/validation/ValidationRuleset';
 import { DerivationService } from '@/services/DerivationService';
 import { NotificationType } from '@/core/utils/NotificationType';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 // child components
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
@@ -326,12 +327,12 @@ export class FormSubAccountCreationTs extends Vue {
 
     async importSubAccountFromLedger(childAccountName: string): Promise<AccountModel> | null {
         try {
-            const accountService = new AccountService();
-            const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
-            const isAppSupported = await symbolLedger.isAppSupported();
+            const ledgerService = new LedgerService();
+            const isAppSupported = await ledgerService.isAppSupported();
             if (!isAppSupported) {
                 throw { errorCode: 'ledger_not_supported_app' };
             }
+            const accountService = new AccountService();
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
             this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
             const accountResult = await accountService.getLedgerPublicKeyByPath(this.networkType, nextPath);

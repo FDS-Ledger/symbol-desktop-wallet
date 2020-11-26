@@ -38,6 +38,7 @@ import { CosignatureQR } from 'symbol-qr-library';
 // @ts-ignore
 import QRCodeDisplay from '@/components/QRCode/QRCodeDisplay/QRCodeDisplay.vue';
 import { AccountService } from '@/services/AccountService';
+import { LedgerService } from '@/services/LedgerService';
 
 @Component({
     components: {
@@ -237,17 +238,17 @@ export class ModalTransactionCosignatureTs extends Vue {
         // - sign cosignature transaction
         if (this.currentAccount.type === AccountType.LEDGER) {
             try {
-                const accountService = new AccountService();
-                const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
-                const isAppSupported = await symbolLedger.isAppSupported();
+                const ledgerService = new LedgerService();
+                const isAppSupported = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
                     throw { errorCode: 'ledger_not_supported_app' };
                 }
                 const currentPath = this.currentAccount.path;
                 const addr = this.currentAccount.address;
+                const accountService = new AccountService();
                 this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
                 const signerPublicKey = await accountService.getLedgerPublicKeyByPath(NetworkType.TEST_NET, currentPath);
-                const signature = await symbolLedger.signCosignatureTransaction(currentPath, this.transaction, signerPublicKey);
+                const signature = await ledgerService.signCosignatureTransaction(currentPath, this.transaction, signerPublicKey);
                 this.$store.dispatch(
                     'diagnostic/ADD_DEBUG',
                     `Co-signed transaction with account ${addr} and result: ${JSON.stringify({
