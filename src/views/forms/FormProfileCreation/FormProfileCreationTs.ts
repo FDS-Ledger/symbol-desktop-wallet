@@ -34,7 +34,6 @@ import { FilterHelpers } from '@/core/utils/FilterHelpers';
 import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 import { AccountService } from '@/services/AccountService';
-import { LedgerService } from '@/services/LedgerService/LedgerService';
 
 /// end-region custom types
 
@@ -249,13 +248,13 @@ export class FormProfileCreationTs extends Vue {
      * @return {AccountModel}
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
-        const ledgerService = new LedgerService();
-        const { isAppSupported } = await ledgerService.isAppSupported();
+        const accountService = new AccountService();
+        const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
+        const isAppSupported = await symbolLedger.isAppSupported();
         if (!isAppSupported) {
             throw { errorCode: 'ledger_not_supported_app' };
         }
         const profileName = this.formItems.profileName;
-        const accountService = new AccountService();
         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, AccountService.DEFAULT_ACCOUNT_PATH);
         const publicKey = accountResult;

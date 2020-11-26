@@ -40,7 +40,6 @@ import { NetworkConfigurationModel } from '@/core/database/entities/NetworkConfi
 // @ts-ignore
 import { Observable, of } from 'rxjs';
 import { AccountService } from '@/services/AccountService';
-import { LedgerService } from '@/services/LedgerService/LedgerService';
 
 // internal dependencies
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
@@ -372,14 +371,14 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
-                const ledgerService = new LedgerService();
-                const { isAppSupported } = await ledgerService.isAppSupported();
+                const accountService = new AccountService();
+                const symbolLedger = await accountService.getSimpleLedger(AccountService.DEFAULT_ACCOUNT_PATH);
+                const isAppSupported = await symbolLedger.isAppSupported();
                 if (!isAppSupported) {
                     throw { errorCode: 'ledger_not_supported_app' };
                 }
                 const currentPath = this.currentAccount.path;
                 const networkType = this.currentProfile.networkType;
-                const accountService = new AccountService();
                 this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
                 const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
                 const publicKey = signerPublicKey;
@@ -394,7 +393,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 if (txMode == 'SIMPLE') {
                     stageTransactions.map(async (t) => {
                         const transaction = this.command.calculateSuggestedMaxFeeLedger(t);
-                        ledgerService
+                        symbolLedger
                             .signTransaction(currentPath, transaction, this.generationHash, ledgerAccount.publicKey)
                             .then((res: any) => {
                                 // - notify about successful transaction announce
@@ -421,7 +420,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         ),
                     );
 
-                    ledgerService
+                    symbolLedger
                         .signTransaction(currentPath, aggregate, this.generationHash, ledgerAccount.publicKey)
                         .then((res) => {
                             // - notify about successful transaction announce
@@ -446,7 +445,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             maxFee,
                         ),
                     );
-                    const signedAggregateTransaction = await ledgerService
+                    const signedAggregateTransaction = await symbolLedger
                         .signTransaction(currentPath, aggregate, this.generationHash, ledgerAccount.publicKey)
                         .then((signedAggregateTransaction) => {
                             return signedAggregateTransaction;
@@ -461,7 +460,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             maxFee,
                         ),
                     );
-                    const signedHashLock = await ledgerService
+                    const signedHashLock = await symbolLedger
                         .signTransaction(currentPath, hashLock, this.generationHash, ledgerAccount.publicKey)
                         .then((res) => {
                             return res;

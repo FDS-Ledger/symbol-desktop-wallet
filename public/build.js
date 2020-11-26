@@ -4,7 +4,6 @@ const path = require('path')
 const { app, BrowserWindow, shell, globalShortcut, Menu, ipcMain } = require('electron')
 const electron = require('electron')
 const name = electron.app.getName()
-require(`../dist/LedgerCallServer.js`)
 // Set the path of the folder where the persisted data is stored
 electron.app.setPath('userData', path.join(electron.app.getPath('home'), '.symbol-desktop-wallet'))
 
@@ -260,7 +259,7 @@ function initialize() {
       title: app.getName(),
       titleBarStyle: 'hiddenInset',
       webPreferences: {
-        nodeIntegration: false,
+        nodeIntegration: true,
       },
       resizable: true,
     }
@@ -268,7 +267,8 @@ function initialize() {
     mainWindow = new BrowserWindow(windowOptions)
     mainWindow.setMenu(null)
     mainWindow.loadURL(loadUrlPath)
-
+    // mainWindow.openDevTools()
+    
     mainWindow.once('ready-to-show', () => {
       mainWindow.show()
     })
