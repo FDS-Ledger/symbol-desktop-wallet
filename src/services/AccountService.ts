@@ -269,11 +269,10 @@ export class AccountService {
      * @param {Password} newPassword
      */
     public updateWalletPassword(account: AccountModel, oldPassword: Password, newPassword: Password): AccountModel {
-        // Password modification is not allowed for hardware wallets
         if (account.type !== AccountType.SEED && account.type !== AccountType.PRIVATE_KEY) {
-            throw new Error('Hardware account password cannot be changed');
+            return account
         }
-
+        
         const privateKey = Crypto.decrypt(account.encryptedPrivateKey, oldPassword.value);
 
         // Encrypt the private key with the new password

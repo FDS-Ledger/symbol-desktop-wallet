@@ -101,15 +101,15 @@ export class FormProfileUnlockTs extends Vue {
         try {
             const password = new Password(this.formItems.password);
             if (this.isLedger) {
-                const passwordHash = ProfileService.getPasswordHash(new Password(this.formItems.password));
+                const passwordHash = ProfileService.getPasswordHash(password);
                 // read account's password hash and compare
                 const currentProfile = this.accountService.getProfileByName(this.currentAccount.profileName);
                 const accountPass = currentProfile.password;
 
                 if (accountPass == passwordHash) {
                     const publicKey = this.currentAccount.publicKey;
-                    const addr = Address.createFromPublicKey(publicKey, this.networkType);
-                    return this.$emit('success', { account: this.currentAccount, addr, password });
+                    const address = Address.createFromPublicKey(publicKey, this.networkType);
+                    return this.$emit('success', { account: { ...this.currentAccount, address }, password });
                 }
             } else {
                 const privateKey: string = Crypto.decrypt(this.currentAccount.encryptedPrivateKey, password.value);

@@ -335,14 +335,12 @@ export class FormSubAccountCreationTs extends Vue {
             const accountService = new AccountService();
             const nextPath = this.paths.getNextAccountPath(this.knownPaths);
             this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-            const accountResult = await accountService.getLedgerPublicKeyByPath(this.networkType, nextPath);
-            const publicKey = accountResult;
+            const publicKey = await accountService.getLedgerPublicKeyByPath(this.networkType, nextPath);
             const address = PublicAccount.createFromPublicKey(publicKey, this.networkType).address;
-            const accName = Object.values(this.currentAccount)[1];
             return {
                 id: SimpleObjectStorage.generateIdentifier(),
                 name: childAccountName,
-                profileName: accName,
+                profileName: this.currentProfile.profileName,
                 node: '',
                 type: AccountType.fromDescriptor('Ledger'),
                 address: address.plain(),
