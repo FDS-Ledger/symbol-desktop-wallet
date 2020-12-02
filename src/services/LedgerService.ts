@@ -10,7 +10,7 @@ export class LedgerService {
     }
 
     private formatError(error) {
-        return { errorCode: error.statusCode || error.id || error };
+        return error.statusCode || error.id ? { errorCode: error.statusCode || error.id } : error;
     }
 
     public async isAppSupported() {

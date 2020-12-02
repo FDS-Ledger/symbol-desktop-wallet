@@ -291,39 +291,45 @@ export class ModalTransactionConfirmationTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} errorCode
+     * @param {any} error
      * @return {void}
      */
-    public errorNotificationHandler(errorCode: any) {
-        switch (errorCode) {
-            case 'NoDevice':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                break;
-            case 'bridge_problem':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                break;
-            case 'ledger_not_supported_app':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                break;
-            case 26628:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                break;
-            case 27904:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                break;
-            case 27264:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                break;
-            case 27013:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                break;
-            case 26368:
-                this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
-                break;
-            default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_sign_transaction_failed', { reason: errorCode }));
-                break;
+    public errorNotificationHandler(error: any) {
+        if (error.errorCode) {
+            switch (error.errorCode) {
+                case 'NoDevice':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                    return;
+                case 'bridge_problem':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                    return;
+                case 'ledger_not_supported_app':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                    return;
+                case 26628:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                    return;
+                case 27904:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                    return;
+                case 27264:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                    return;
+                case 27013:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                    return;
+                case 26368:
+                    this.$store.dispatch('notification/ADD_ERROR', 'transaction_too_long');
+                    return;
+            }
+        } else if (error.name) {
+            switch (error.name) {
+                case 'TransportOpenUserCancelled':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+                    return;
+            }
         }
+        this.$store.dispatch('notification/ADD_ERROR', this.$t('sign_transaction_failed', { reason: error.message || error }));
     }
 
     /**
@@ -407,7 +413,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             })
                             .catch((error) => {
                                 this.show = false;
-                                this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                                this.errorNotificationHandler(error);
                             });
                     });
                 } else if (txMode == 'AGGREGATE') {
@@ -434,7 +440,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         })
                         .catch((error) => {
                             this.show = false;
-                            this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                            this.errorNotificationHandler(error);
                         });
                 } else {
                     const aggregate = this.command.calculateSuggestedMaxFeeLedger(
@@ -484,7 +490,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 }
             } catch (error) {
                 this.show = false;
-                this.errorNotificationHandler(error.errorCode ? error.errorCode : error.message ? error.message : error);
+                this.errorNotificationHandler(error);
             }
         }
     }

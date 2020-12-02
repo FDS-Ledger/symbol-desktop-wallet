@@ -137,36 +137,42 @@ export class FormProfileCreationTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} errorCode
+     * @param {any} error
      * @return {void}
      */
-    public errorNotificationHandler(errorCode: any) {
-        switch (errorCode) {
-            case 'NoDevice':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                break;
-            case 'bridge_problem':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                break;
-            case 'ledger_not_supported_app':
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                break;
-            case 26628:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                break;
-            case 27904:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                break;
-            case 27264:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                break;
-            case 27013:
-                this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                break;
-            default:
-                this.$store.dispatch('notification/ADD_ERROR', this.$t('alert_create_wallet_failed', { reason: errorCode }));
-                break;
+    public errorNotificationHandler(error: any) {
+        if (error.errorCode) {
+            switch (error.errorCode) {
+                case 'NoDevice':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                    return;
+                case 'bridge_problem':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
+                    return;
+                case 'ledger_not_supported_app':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                    return;
+                case 26628:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                    return;
+                case 27904:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                    return;
+                case 27264:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                    return;
+                case 27013:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                    return;
+            }
+        } else if (error.name) {
+            switch (error.name) {
+                case 'TransportOpenUserCancelled':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+                    return;
+            }
         }
+        this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
     }
 
     /**
@@ -231,7 +237,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$router.push({ name: 'profiles.accessLedger.finalize' });
                 })
                 .catch((error) => {
-                    this.errorNotificationHandler(error.errorCode ? error.errorCode : error);
+                    this.errorNotificationHandler(error);
                 });
         }
     }
