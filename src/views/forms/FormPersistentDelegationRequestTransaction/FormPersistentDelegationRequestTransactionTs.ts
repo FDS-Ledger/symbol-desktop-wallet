@@ -120,7 +120,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
      * Check the account type is Ledger or not
      */
     private get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+        return this.currentAccount.type == AccountType.LEDGER;
     }
 
     /**

@@ -1,7 +1,7 @@
 <template>
     <div class="account-selector-panel">
         <div v-auto-scroll="'active-background'" class="account-switch-body-container scroll">
-            <div v-if="!(ledgerAccount.length > 0)">
+            <div v-if="seedAccounts.length > 0">
                 <div class="account-type-title">Seed accounts</div>
                 <div
                     v-for="item in seedAccounts"

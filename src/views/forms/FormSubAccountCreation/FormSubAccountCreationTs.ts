@@ -153,7 +153,7 @@ export class FormSubAccountCreationTs extends Vue {
     }
 
     public get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+        return this.currentAccount.type == AccountType.LEDGER;
     }
 
     public get isPrivateKeyAccount(): boolean {
@@ -163,44 +163,36 @@ export class FormSubAccountCreationTs extends Vue {
     /// end-region computed properties getter/setter
 
     /**
-     * Error notification handler
-     * @param {any} error
-     * @return {void}
+     * Error notification handler for Ledger profile
      */
-    public errorNotificationHandler(error: any) {
+    private errorNotificationHandler(error: any) {
         if (error.errorCode) {
             switch (error.errorCode) {
-                case 'NoDevice':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                    return;
                 case 'bridge_problem':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                    return;
+                    break;
                 case 'ledger_not_supported_app':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                    return;
+                    break;
                 case 26628:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                    return;
+                    break;
                 case 27904:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                    return;
+                    break;
                 case 27264:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                    return;
+                    break;
                 case 27013:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                    return;
+                    break;
             }
         } else if (error.name) {
-            switch (error.name) {
-                case 'TransportOpenUserCancelled':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
-                    return;
-            }
+            this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+        } else {
+            this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
         }
-        this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
-
+        return;
     }
 
     /**
@@ -282,7 +274,9 @@ export class FormSubAccountCreationTs extends Vue {
         try {
             // - don't allow creating more than 10 accounts
             if (this.knownPaths.length >= MAX_SEED_ACCOUNTS_NUMBER) {
-                this.$store.dispatch('notification/ADD_ERROR', this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }),
+                this.$store.dispatch(
+                    'notification/ADD_ERROR',
+                    this.$t(NotificationType.TOO_MANY_SEED_ACCOUNTS_ERROR, { maxSeedAccountsNumber: MAX_SEED_ACCOUNTS_NUMBER }),
                 );
                 return null;
             }

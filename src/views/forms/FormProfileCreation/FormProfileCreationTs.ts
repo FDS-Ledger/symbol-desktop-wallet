@@ -137,42 +137,35 @@ export class FormProfileCreationTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} error
-     * @return {void}
      */
-    public errorNotificationHandler(error: any) {
+    private errorNotificationHandler(error: any) {
         if (error.errorCode) {
             switch (error.errorCode) {
-                case 'NoDevice':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                    return;
                 case 'bridge_problem':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                    return;
+                    break;
                 case 'ledger_not_supported_app':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                    return;
+                    break;
                 case 26628:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                    return;
+                    break;
                 case 27904:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                    return;
+                    break;
                 case 27264:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                    return;
+                    break;
                 case 27013:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                    return;
+                    break;
             }
         } else if (error.name) {
-            switch (error.name) {
-                case 'TransportOpenUserCancelled':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
-                    return;
-            }
+            this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+        } else {
+            this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
         }
-        this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
+        return;
     }
 
     /**

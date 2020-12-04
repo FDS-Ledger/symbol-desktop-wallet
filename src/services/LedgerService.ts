@@ -1,4 +1,3 @@
-import { SignedTransaction, CosignatureSignedTransaction } from 'symbol-sdk';
 import { DerivationPathValidator } from '@/core/validation/validators';
 import { SymbolLedger } from '@/core/utils/Ledger';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
@@ -73,4 +72,3 @@ export class LedgerService {
         }
     }
 }
-

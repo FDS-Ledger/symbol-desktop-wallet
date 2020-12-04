@@ -270,9 +270,9 @@ export class AccountService {
      */
     public updateWalletPassword(account: AccountModel, oldPassword: Password, newPassword: Password): AccountModel {
         if (account.type !== AccountType.SEED && account.type !== AccountType.PRIVATE_KEY) {
-            return account
+            return account;
         }
-        
+
         const privateKey = Crypto.decrypt(account.encryptedPrivateKey, oldPassword.value);
 
         // Encrypt the private key with the new password

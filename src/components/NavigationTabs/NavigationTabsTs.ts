@@ -50,7 +50,7 @@ export class NavigationTabsTs extends Vue {
     public currentAccount: AccountModel;
 
     public get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+        return this.currentAccount.type == AccountType.LEDGER;
     }
 
     @Prop({ default: 'horizontal' }) direction: 'horizontal' | 'vertical';

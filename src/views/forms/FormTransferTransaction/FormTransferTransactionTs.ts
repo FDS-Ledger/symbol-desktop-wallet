@@ -371,7 +371,7 @@ export class FormTransferTransactionTs extends FormTransactionBase {
     }
 
     protected get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.fromDescriptor('Ledger');
+        return this.currentAccount.type == AccountType.LEDGER;
     }
 
     protected get hasAccountUnlockModal(): boolean {

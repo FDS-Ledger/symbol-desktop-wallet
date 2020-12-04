@@ -18,7 +18,6 @@
     "connect_ledger_title": "Connect to a Ledger Hardware Wallet",
     "connect_ledger_prompt": "Connect to Ledger",
     "ledger_description": "Import a wallet from a Ledger device",
-    "ledger_no_device": "Not found Ledger device",
     "ledger_no_device_selected": "No Ledger device was selected",
     "ledger_bridge_not_running": "There is a problem with the ledger-bridge. Please install and check the ledger-bridge",
     "ledger_device_locked": "Please unlock your Ledger device",

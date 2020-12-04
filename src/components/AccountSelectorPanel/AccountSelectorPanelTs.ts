@@ -182,7 +182,7 @@ export class AccountSelectorPanelTs extends Vue {
     }
 
     public get pkAccounts(): AccountModel[] {
-        return this.knownAccounts.filter((_) => _.type !== 1 && _.type !== 5);
+        return this.knownAccounts.filter((_) => _.type === 2);
     }
 
     public get hasAddAccountModal(): boolean {
