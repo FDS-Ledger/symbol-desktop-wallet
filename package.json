@@ -9,7 +9,7 @@
     },
     "license": "Apache-2.0",
     "scripts": {
-        "start": "./node_modules/.bin/electron-rebuild && electron .",
+        "start": "electron .",
         "test": "vue-cli-service test:unit",
         "dev": "vue-cli-service serve",
         "build": "npm run build:web",
@@ -25,7 +25,8 @@
         "eslint:fix": "eslint src/ --ext .ts --fix && eslint src/ --ext .vue --fix && eslint __tests__/ --ext .ts --fix && eslint __mocks__/ --ext .ts --fix",
         "prettier": "prettier --check ./src ./__tests__ ./__mocks__",
         "prettier:fix": "prettier --write ./src ./__tests__ ./__mocks__",
-        "version": "echo $npm_package_version"
+        "version": "echo $npm_package_version",
+        "electron:rebuild": "./node_modules/.bin/electron-rebuild"
     },
     "author": "Greg Saive <greg.saive@nem.software>",
     "contributors": [
