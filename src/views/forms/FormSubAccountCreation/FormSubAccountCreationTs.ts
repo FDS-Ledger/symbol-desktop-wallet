@@ -164,8 +164,6 @@ export class FormSubAccountCreationTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} error
-     * @return {void}
      */
     private errorNotificationHandler(error: any) {
         if (error.errorCode) {
@@ -200,7 +198,6 @@ export class FormSubAccountCreationTs extends Vue {
             }
         }
         this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
-
     }
 
     /**

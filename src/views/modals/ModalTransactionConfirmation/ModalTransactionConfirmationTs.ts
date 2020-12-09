@@ -291,8 +291,6 @@ export class ModalTransactionConfirmationTs extends Vue {
 
     /**
      * Error notification handler
-     * @param {any} error
-     * @return {void}
      */
     private errorNotificationHandler(error: any) {
         if (error.errorCode) {
@@ -331,7 +329,6 @@ export class ModalTransactionConfirmationTs extends Vue {
         }
         this.$store.dispatch('notification/ADD_ERROR', this.$t('sign_transaction_failed', { reason: error.message || error }));
     }
-
 
     /**
      * Hook called when child component FormProfileUnlock emits

@@ -136,10 +136,8 @@ export class FormProfileCreationTs extends Vue {
     /// end-region computed properties getter/setter
 
     /**
-    * Error notification handler
-    * @param {any} error
-    * @return {void}
-    */
+     * Error notification handler
+     */
     private errorNotificationHandler(error: any) {
         if (error.errorCode) {
             switch (error.errorCode) {
@@ -174,7 +172,6 @@ export class FormProfileCreationTs extends Vue {
         }
         this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
     }
-
 
     /**
      * Submit action, validates form and creates account in storage

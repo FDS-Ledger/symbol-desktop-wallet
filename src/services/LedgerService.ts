@@ -11,7 +11,7 @@ export class LedgerService {
     }
 
     private async closeTransport() {
-        TransportNodeHid && this.transport && await this.transport.close();
+        TransportNodeHid && this.transport && (await this.transport.close());
     }
 
     private formatError(error) {
