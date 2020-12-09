@@ -6,7 +6,7 @@ const TransportNodeHid = window['TransportNodeHid'] && window['TransportNodeHid'
 export class LedgerService {
     private transport;
 
-    private async getTransport() {
+    private async openTransport() {
         return TransportNodeHid ? await TransportNodeHid.open() : await TransportWebUSB.create();
     }
 
@@ -20,8 +20,8 @@ export class LedgerService {
 
     public async isAppSupported() {
         try {
-            const transport = await this.getTransport();
-            const symbolLedger = new SymbolLedger(transport, 'XYM');
+            this.transport = await this.openTransport();
+            const symbolLedger = new SymbolLedger(this.transport, 'XYM');
             const result = await symbolLedger.isAppSupported();
             await this.closeTransport();
             return result;
@@ -37,8 +37,8 @@ export class LedgerService {
                 const errorMessage = 'Invalid derivation path: ' + path;
                 throw new Error(errorMessage);
             }
-            const transport = await this.getTransport();
-            const symbolLedger = new SymbolLedger(transport, 'XYM');
+            this.transport = await this.openTransport();
+            const symbolLedger = new SymbolLedger(this.transport, 'XYM');
             const result = await symbolLedger.getAccount(path, networkType, display);
             await this.closeTransport();
             return result;
@@ -54,8 +54,8 @@ export class LedgerService {
                 const errorMessage = 'Invalid derivation path: ' + path;
                 throw new Error(errorMessage);
             }
-            const transport = await this.getTransport();
-            const symbolLedger = new SymbolLedger(transport, 'XYM');
+            this.transport = await this.openTransport();
+            const symbolLedger = new SymbolLedger(this.transport, 'XYM');
             const result = await symbolLedger.signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey);
             await this.closeTransport();
             return result;
@@ -71,8 +71,8 @@ export class LedgerService {
                 const errorMessage = 'Invalid derivation path: ' + path;
                 throw new Error(errorMessage);
             }
-            const transport = await this.getTransport();
-            const symbolLedger = new SymbolLedger(transport, 'XYM');
+            this.transport = await this.openTransport();
+            const symbolLedger = new SymbolLedger(this.transport, 'XYM');
             const result = await symbolLedger.signCosignatureTransaction(path, cosignatureTransaction, signerPublicKey);
             await this.closeTransport();
             return result;
