@@ -221,6 +221,9 @@ function initialize() {
         height: height,
         autoHideMenuBar: false,
         resizable: true,
+        webPreferences: {
+          nodeIntegration: true,
+        }
       })
     } else {
       height = parseInt((1080 * size.width) / 1920 + 30)
@@ -229,6 +232,9 @@ function initialize() {
         height: height - 50,
         autoHideMenuBar: false,
         resizable: true,
+        webPreferences: {
+          nodeIntegration: true,
+        }
       })
     }
     mainWindow.loadFile(loadUrlPath)
@@ -258,17 +264,17 @@ function initialize() {
       height: height,
       title: app.getName(),
       titleBarStyle: 'hiddenInset',
+      resizable: true,
       webPreferences: {
         nodeIntegration: true,
-      },
-      resizable: true,
+      }
     }
     windowOptions.icon = iconUrlPath
     mainWindow = new BrowserWindow(windowOptions)
     mainWindow.setMenu(null)
     mainWindow.loadURL(loadUrlPath)
     // mainWindow.openDevTools()
-    
+
     mainWindow.once('ready-to-show', () => {
       mainWindow.show()
     })

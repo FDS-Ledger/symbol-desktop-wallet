@@ -4,8 +4,14 @@ import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 const TransportNodeHid = window['TransportNodeHid'] && window['TransportNodeHid'].default;
 
 export class LedgerService {
+    private transport;
+
     private async getTransport() {
         return TransportNodeHid ? await TransportNodeHid.open() : await TransportWebUSB.create();
+    }
+
+    private async closeTransport() {
+        TransportNodeHid && this.transport && await this.transport.close();
     }
 
     private formatError(error) {
@@ -17,9 +23,10 @@ export class LedgerService {
             const transport = await this.getTransport();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             const result = await symbolLedger.isAppSupported();
-            // transport.close();
+            await this.closeTransport();
             return result;
         } catch (error) {
+            await this.closeTransport();
             throw this.formatError(error);
         }
     }
@@ -33,9 +40,10 @@ export class LedgerService {
             const transport = await this.getTransport();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             const result = await symbolLedger.getAccount(path, networkType, display);
-            // transport.close();
+            await this.closeTransport();
             return result;
         } catch (error) {
+            await this.closeTransport();
             throw this.formatError(error);
         }
     }
@@ -49,9 +57,10 @@ export class LedgerService {
             const transport = await this.getTransport();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             const result = await symbolLedger.signTransaction(path, transferTransaction, networkGenerationHash, signerPublicKey);
-            // transport.close();
+            await this.closeTransport();
             return result;
         } catch (error) {
+            await this.closeTransport();
             throw this.formatError(error);
         }
     }
@@ -65,9 +74,10 @@ export class LedgerService {
             const transport = await this.getTransport();
             const symbolLedger = new SymbolLedger(transport, 'XYM');
             const result = await symbolLedger.signCosignatureTransaction(path, cosignatureTransaction, signerPublicKey);
-            // transport.close();
+            await this.closeTransport();
             return result;
         } catch (error) {
+            await this.closeTransport();
             throw this.formatError(error);
         }
     }

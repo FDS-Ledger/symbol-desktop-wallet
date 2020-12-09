@@ -163,36 +163,44 @@ export class FormSubAccountCreationTs extends Vue {
     /// end-region computed properties getter/setter
 
     /**
-     * Error notification handler for Ledger profile
+     * Error notification handler
+     * @param {any} error
+     * @return {void}
      */
     private errorNotificationHandler(error: any) {
         if (error.errorCode) {
             switch (error.errorCode) {
+                case 'NoDevice':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                    return;
                 case 'bridge_problem':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_bridge_not_running');
-                    break;
+                    return;
                 case 'ledger_not_supported_app':
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                    break;
+                    return;
                 case 26628:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                    break;
+                    return;
                 case 27904:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                    break;
+                    return;
                 case 27264:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                    break;
+                    return;
                 case 27013:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                    break;
+                    return;
             }
         } else if (error.name) {
-            this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
-        } else {
-            this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
+            switch (error.name) {
+                case 'TransportOpenUserCancelled':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+                    return;
+            }
         }
-        return;
+        this.$store.dispatch('notification/ADD_ERROR', this.$t('add_account_failed', { reason: error.message || error }));
+
     }
 
     /**
