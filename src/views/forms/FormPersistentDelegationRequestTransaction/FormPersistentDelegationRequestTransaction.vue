@@ -22,7 +22,7 @@
                         </template>
                     </FormRow>
                     <FormRow class-name="buttons-row">
-                        <template v-if="!isLedger" v-slot:inputs>
+                        <template v-slot:inputs>
                             <div class="harvesting-buttons-container">
                                 <button
                                     v-if="harvestingStatus === 'INACTIVE'"
@@ -65,7 +65,7 @@
         </FormWrapper>
         <ModalTransactionConfirmation
             v-if="hasConfirmationModal"
-            :command="this"
+            :command="command"
             :visible="hasConfirmationModal"
             @success="onConfirmationSuccess"
             @error="onConfirmationError"
