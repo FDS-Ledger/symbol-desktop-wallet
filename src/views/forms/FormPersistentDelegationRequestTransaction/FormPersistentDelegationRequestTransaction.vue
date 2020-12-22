@@ -65,7 +65,7 @@
         </FormWrapper>
         <ModalTransactionConfirmation
             v-if="hasConfirmationModal"
-            :command="command"
+            :command="this"
             :visible="hasConfirmationModal"
             @success="onConfirmationSuccess"
             @error="onConfirmationError"
