@@ -299,13 +299,8 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 console.log(x)
             }
         );
-        let t = transactions[0]
-        transactions[0] = transactions[1]
-        transactions[1] = t
-        console.log(0, transactions[0])
-        console.log(1, transactions[1])
 
-        return transactions;
+        return [transactions[0]];
     }
 
     public resolveTransactions(): Observable<Transaction[]> {
@@ -510,7 +505,35 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             this.$store.dispatch('notification/ADD_ERROR', this.$t('invalid_node'));
             return;
         }
-        Object.assign(this, {...this.createTransactionCommand()})
+        const { mode,
+            signer,
+            signerPublicKey,
+            stageTransactions,
+            networkMosaic,
+            generationHash,
+            networkType,
+            epochAdjustment,
+            networkConfiguration,
+            transactionFees,
+            requiredCosignatures,
+            
+            calculateSuggestedMaxFeeLedger
+         } = this.createTransactionCommand();
+        Object.assign(this, {
+            mode,
+            signer,
+            signerPublicKey,
+            stageTransactions,
+            networkMosaic,
+            generationHash,
+            networkType,
+            epochAdjustment,
+            networkConfiguration,
+            transactionFees,
+            requiredCosignatures,
+            
+            calculateSuggestedMaxFeeLedger
+        })
         // - open signature modal
         this.onShowConfirmationModal();
     }

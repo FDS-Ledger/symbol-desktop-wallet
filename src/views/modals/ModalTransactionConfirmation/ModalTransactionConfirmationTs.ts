@@ -207,7 +207,9 @@ export class ModalTransactionConfirmationTs extends Vue {
     }
 
     public async mounted() {
+
         this.stagedTransactions = await this.command.resolveTransactions().toPromise();
+        console.log('this.stagedTransactions', this.stagedTransactions)
     }
     /**
      * Reset the form with properties
@@ -293,6 +295,7 @@ export class ModalTransactionConfirmationTs extends Vue {
      * Error notification handler
      */
     private errorNotificationHandler(error: any) {
+        console.log(error)
         if (error.errorCode) {
             switch (error.errorCode) {
                 case 'NoDevice':
@@ -376,6 +379,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
+                console.log(this.command.stageTransactions)
                 const ledgerService = new LedgerService();
                 const isAppSupported = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
