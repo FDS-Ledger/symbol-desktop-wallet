@@ -55,6 +55,7 @@ import { FormPersistentDelegationRequestTransactionTs } from '@/views/forms/Form
 
 // @ts-ignore
 import HardwareConfirmationButton from '@/components/HardwareConfirmationButton/HardwareConfirmationButton.vue';
+import { NodeModel } from '@/core/database/entities/NodeModel';
 
 @Component({
     components: {
@@ -426,7 +427,7 @@ export class ModalTransactionConfirmationTs extends Vue {
 
                                     this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
                                         accountAddress,
-                                        selectedHarvestingNode: this.command.formItems.nodeModel,
+                                        selectedHarvestingNode: { nodePublicKey: '' } as NodeModel,
                                     });
                                 }
                                 this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
