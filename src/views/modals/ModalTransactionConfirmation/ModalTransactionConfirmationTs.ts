@@ -362,6 +362,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             AccountType.PRIVATE_KEY === this.currentAccount.type ||
             AccountType.KEYSTORE === this.currentAccount.type
         ) {
+            console.log('transactionSigner',transactionSigner)
             const announcements = await this.command.announce(new TransactionAnnouncerService(this.$store), transactionSigner).toPromise();
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {

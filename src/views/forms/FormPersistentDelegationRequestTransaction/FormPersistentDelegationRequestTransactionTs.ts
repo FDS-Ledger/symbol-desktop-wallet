@@ -282,7 +282,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 this.networkType,
                 maxFee,
             );
-
+            console.log('getPersistentDelegationRequestTransaction',[this.calculateSuggestedMaxFee(persistentDelegationReqTx)])
             return this.isMultisigMode()
                 ? this.toMultiSigAggregate([persistentDelegationReqTx], maxFee, transactionSigner)
                 : of([this.calculateSuggestedMaxFee(persistentDelegationReqTx)]);
@@ -320,7 +320,14 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             tap((resArr) =>
                 resArr[0].subscribe((res) => {
                     if (res.success) {
-                        signedPersistentDelReqTx$.subscribe((signedTx) => this.saveSignedPersistentDelReqTxs(accountAddress, signedTx));
+                        // Not alway run
+                        // If signedPersistentDelReqTx is blank not run
+                        // Note for case start/stop,.. may change signedtx
+                        signedPersistentDelReqTx$.subscribe((signedTx) => {
+                            console.log('signedPersistentDelReqTx$',signedTx)
+                            this.saveSignedPersistentDelReqTxs(accountAddress, signedTx)
+                        });
+                        // 
                         this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
                             accountAddress,
                             isPersistentDelReqSent: false,
@@ -382,6 +389,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         return undefined;
     }
     private saveSignedPersistentDelReqTxs(accountAddress: string, signedPersistentDelReqTxs: SignedTransaction[]) {
+        console.log('saveSignedPersistentDelReqTxs', { accountAddress, signedPersistentDelReqTxs })
         this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SIGNED_PERSISTENT_DEL_REQ_TXS', { accountAddress, signedPersistentDelReqTxs });
         if (!signedPersistentDelReqTxs || signedPersistentDelReqTxs.length === 0) {
             const isPersistentDelReqSent = false;
@@ -401,6 +409,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 this.signedPersistentDelReqTxs[1],
             );
         } else {
+            console.log('activateHarvesting', this.signedPersistentDelReqTxs)
             announceResult = transactionAnnoucer.announce(this.signedPersistentDelReqTxs[0]);
         }
         announceResult.subscribe((res) => {
@@ -502,6 +511,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
     }
 
     private get signedPersistentDelReqTxs() {
+        console.log('signedPersistentDelReqTxs', this.currentSignerHarvestingModel)
         return this.currentSignerHarvestingModel?.signedPersistentDelReqTxs?.map(
             (st) => new SignedTransaction(st.payload, st.hash, st.signerPublicKey, st.type, st.networkType),
         );
