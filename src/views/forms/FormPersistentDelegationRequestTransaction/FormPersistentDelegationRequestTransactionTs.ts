@@ -236,6 +236,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                         maxFee,
                     ),
                 );
+                console.log('getKeyLinkTransactions',[aggregate])
                 return of([aggregate]);
             }
         }
@@ -282,7 +283,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 this.networkType,
                 maxFee,
             );
-
+            console.log('getPersistentDelegationRequestTransaction',[this.calculateSuggestedMaxFee(persistentDelegationReqTx)])
             return this.isMultisigMode()
                 ? this.toMultiSigAggregate([persistentDelegationReqTx], maxFee, transactionSigner)
                 : of([this.calculateSuggestedMaxFee(persistentDelegationReqTx)]);
@@ -296,7 +297,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         this.resolveTransactions().subscribe(
             (x) => {
                 transactions = x
-                console.log(x)
+                console.log('getTransactions', x)
             }
         );
 
@@ -304,6 +305,10 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
     }
 
     public resolveTransactions(): Observable<Transaction[]> {
+        // let t = this.getKeyLinkTransactions().subscribe(x => console.log('x', x))
+        // console.log(t)
+       
+
         return this.getKeyLinkTransactions().pipe(
             switchMap((txs) => this.getPersistentDelegationRequestTransaction().pipe(map((ptxs) => [...txs, ...ptxs]))),
         );
@@ -321,6 +326,8 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         return this.getKeyLinkTransactions(transactionSigner).pipe(
             flatMap((transactions) => {
                 const signedTransactions = transactions.map((t) => transactionSigner.signTransaction(t, this.generationHash));
+                signedTransactions[0].subscribe(x=>console.log('announce',x))
+                
                 if (!signedTransactions.length) {
                     return of([]) as Observable<Observable<BroadcastResult>[]>;
                 }
@@ -516,9 +523,9 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             networkConfiguration,
             transactionFees,
             requiredCosignatures,
-            
+
             calculateSuggestedMaxFeeLedger
-         } = this.createTransactionCommand();
+        } = this.createTransactionCommand();
         Object.assign(this, {
             mode,
             signer,
@@ -531,7 +538,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             networkConfiguration,
             transactionFees,
             requiredCosignatures,
-            
+
             calculateSuggestedMaxFeeLedger
         })
         // - open signature modal

@@ -365,6 +365,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             AccountType.PRIVATE_KEY === this.currentAccount.type ||
             AccountType.KEYSTORE === this.currentAccount.type
         ) {
+            console.log('stageTransactions',this.command.stageTransactions)
             const announcements = await this.command.announce(new TransactionAnnouncerService(this.$store), transactionSigner).toPromise();
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
@@ -379,7 +380,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
-                console.log(this.command.stageTransactions)
+                console.log('stageTransactions',this.command.stageTransactions)
                 const ledgerService = new LedgerService();
                 const isAppSupported = await ledgerService.isAppSupported();
                 if (!isAppSupported) {
