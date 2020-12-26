@@ -95,7 +95,7 @@ export class ModalTransactionConfirmationTs extends Vue {
         required: true,
     })
     public command: any;
-    
+
     public generationHash: string;
     /**
      * Network type
@@ -493,7 +493,7 @@ export class ModalTransactionConfirmationTs extends Vue {
 
                         const persistentDelegationRequestTransaction = this.stagedTransactions[1];
                         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-                        const signedPersistentDelegationRequestTransaction = ledgerService
+                        const signedPersistentDelegationRequestTransaction = await ledgerService
                             .signTransaction(currentPath, persistentDelegationRequestTransaction, this.generationHash, ledgerAccount.publicKey);
                         console.log('ledgerService.sign2', signedPersistentDelegationRequestTransaction)
                         // Annouce 1, after success, storage 2
