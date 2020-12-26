@@ -112,7 +112,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         nodeModel: { nodePublicKey: '' } as NodeModel,
         signerAddress: '',
     };
-
+    
     private newVrfKeyAccount: Account;
     private newRemoteAccount: Account;
 
@@ -516,35 +516,20 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
             this.$store.dispatch('notification/ADD_ERROR', this.$t('invalid_node'));
             return;
         }
-        const { mode,
-            signer,
-            signerPublicKey,
-            stageTransactions,
-            networkMosaic,
-            generationHash,
-            networkType,
-            epochAdjustment,
-            networkConfiguration,
-            transactionFees,
-            requiredCosignatures,
-            calculateSuggestedMaxFeeLedger
-        } = this.createTransactionCommand();
-        Object.assign(this, {
-            mode,
-            signer,
-            signerPublicKey,
-            stageTransactions,
-            networkMosaic,
-            generationHash,
-            networkType,
-            epochAdjustment,
-            networkConfiguration,
-            transactionFees,
-            requiredCosignatures,
-            calculateSuggestedMaxFeeLedger
-        })
         // - open signature modal
         this.onShowConfirmationModal();
+    }
+    
+    public get stageTransactions() {
+         return this.createTransactionCommand().stageTransactions;  
+    }
+
+    public get mode() {
+        return this.createTransactionCommand().mode;
+    }
+    
+    public get signerPublicKey() {
+        return this.currentSignerPublicKey;
     }
 
     public get currentSignerAccount() {
