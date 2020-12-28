@@ -50,7 +50,6 @@ import { AccountTransactionSigner, TransactionAnnouncerService, TransactionSigne
 import TransactionDetails from '@/components/TransactionDetails/TransactionDetails.vue';
 // @ts-ignore
 import FormProfileUnlock from '@/views/forms/FormProfileUnlock/FormProfileUnlock.vue';
-import { FormPersistentDelegationRequestTransactionTs } from '@/views/forms/FormPersistentDelegationRequestTransaction/FormPersistentDelegationRequestTransactionTs';
 
 
 // @ts-ignore
@@ -89,13 +88,17 @@ export class ModalTransactionConfirmationTs extends Vue {
     @Prop({
         default: false,
     })
+    public isDelegatedHarvesting: boolean;
+
+    @Prop({
+        default: false,
+    })
     public visible: boolean;
 
     @Prop({
         required: true,
     })
-    public command: any;
-
+    public command;
     public generationHash: string;
     /**
      * Network type
@@ -387,9 +390,8 @@ export class ModalTransactionConfirmationTs extends Vue {
         } else {
             try {
                 console.log('In ledger')
-                const isDelegatedHarvesting = this.command instanceof FormPersistentDelegationRequestTransactionTs
-                console.log('isDelegatedHarvesting', isDelegatedHarvesting)
-                if (!isDelegatedHarvesting) {
+                console.log('isDelegatedHarvesting', this.isDelegatedHarvesting)
+                if (!this.isDelegatedHarvesting) {
                     const ledgerService = new LedgerService();
                     const isAppSupported = await ledgerService.isAppSupported();
                     if (!isAppSupported) {
@@ -526,7 +528,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         this.onConfirmationSuccess();
                         const services = new TransactionAnnouncerService(this.$store);
                         services.announce(signedKeyUnLinkAggregateCompleteTransaction).subscribe((res) => {
-                            if (res.success && isDelegatedHarvesting) {
+                            if (res.success) {
                                 const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
                                 this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
                                 this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
