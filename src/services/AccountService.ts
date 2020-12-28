@@ -302,7 +302,7 @@ export class AccountService {
             throw new Error(errorMessage);
         }
         const ledgerService = new LedgerService();
-        const accountResult = await ledgerService.getAccount(path, networkType, false);
+        const accountResult = await ledgerService.getAccount(path, networkType, true);
         const { publicKey } = accountResult;
         return publicKey;
     }
