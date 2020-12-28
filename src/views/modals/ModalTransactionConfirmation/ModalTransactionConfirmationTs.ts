@@ -372,7 +372,6 @@ export class ModalTransactionConfirmationTs extends Vue {
             AccountType.KEYSTORE === this.currentAccount.type
         ) {
             console.log('In normal')
-            // console.log('stageTransactions',this.command.stageTransactions)
             const announcements = await this.command.announce(new TransactionAnnouncerService(this.$store), transactionSigner).toPromise();
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
@@ -388,30 +387,27 @@ export class ModalTransactionConfirmationTs extends Vue {
         } else {
             try {
                 console.log('In ledger')
-                const ledgerService = new LedgerService();
-                const isAppSupported = await ledgerService.isAppSupported();
-                if (!isAppSupported) {
-                    throw { errorCode: 'ledger_not_supported_app' };
-                }
-                const currentPath = this.currentAccount.path;
-                const networkType = this.currentProfile.networkType;
-                const accountService = new AccountService();
-                this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-                const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
-                const publicKey = signerPublicKey;
-                const ledgerAccount = PublicAccount.createFromPublicKey(publicKey.toUpperCase(), networkType);
-                const multisigAccount = PublicAccount.createFromPublicKey(this.command.signerPublicKey, this.networkType);
-                const stageTransactions = this.command.stageTransactions;
-                const maxFee = stageTransactions.sort((a, b) => a.maxFee.compare(b.maxFee))[0].maxFee;
-                // - open signature modal
-                const txMode = this.command.mode;
-                console.log('txmode', txMode)
                 const isDelegatedHarvesting = this.command instanceof FormPersistentDelegationRequestTransactionTs
-                console.log('this.stagedTransactions', this.stagedTransactions)
                 console.log('isDelegatedHarvesting', isDelegatedHarvesting)
-                if (txMode == 'SIMPLE') {
-                    console.log('SIMPLE')
-                    if (!isDelegatedHarvesting) {
+                if (!isDelegatedHarvesting) {
+                    const ledgerService = new LedgerService();
+                    const isAppSupported = await ledgerService.isAppSupported();
+                    if (!isAppSupported) {
+                        throw { errorCode: 'ledger_not_supported_app' };
+                    }
+                    const currentPath = this.currentAccount.path;
+                    const networkType = this.currentProfile.networkType;
+                    const accountService = new AccountService();
+                    this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+                    const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
+                    const publicKey = signerPublicKey;
+                    const ledgerAccount = PublicAccount.createFromPublicKey(publicKey.toUpperCase(), networkType);
+                    const multisigAccount = PublicAccount.createFromPublicKey(this.command.signerPublicKey, this.networkType);
+                    const stageTransactions = this.command.stageTransactions;
+                    const maxFee = stageTransactions.sort((a, b) => a.maxFee.compare(b.maxFee))[0].maxFee;
+                    // - open signature modal
+                    const txMode = this.command.mode;
+                    if (txMode == 'SIMPLE') {
                         stageTransactions.map(async (t) => {
                             const transaction = this.command.calculateSuggestedMaxFeeLedger(t);
                             ledgerService
@@ -430,36 +426,8 @@ export class ModalTransactionConfirmationTs extends Vue {
                                     this.errorNotificationHandler(error);
                                 });
                         });
-                    } else {
-                        // Delegated harvesting
-                        const keyUnLinkAggregateCompleteTransaction = this.stagedTransactions[0];
-                        const signedKeyUnLinkAggregateCompleteTransaction = await ledgerService
-                            .signTransaction(currentPath, keyUnLinkAggregateCompleteTransaction, this.generationHash, ledgerAccount.publicKey);
-                        // - notify about successful transaction announce
-                        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
-                        this.$emit('success');
-                        this.onConfirmationSuccess();
-                        const services = new TransactionAnnouncerService(this.$store);
-                        services.announce(signedKeyUnLinkAggregateCompleteTransaction).subscribe((res) => {
-                            if (res.success && isDelegatedHarvesting) {
-                                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
-                                this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
-                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
-                                    accountAddress,
-                                    isPersistentDelReqSent: false,
-                                });
 
-                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
-                                    accountAddress,
-                                    selectedHarvestingNode: { nodePublicKey: '' } as NodeModel,
-                                });
-                            }
-                        });
-                        this.show = false;
-                    }
-                } else if (txMode == 'AGGREGATE') {
-                    console.log('AGGREGATE')
-                    if (!isDelegatedHarvesting) {
+                    } else if (txMode == 'AGGREGATE') {
                         const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                             AggregateTransaction.createComplete(
                                 Deadline.create(this.epochAdjustment),
@@ -484,48 +452,8 @@ export class ModalTransactionConfirmationTs extends Vue {
                                 this.show = false;
                                 this.errorNotificationHandler(error);
                             });
+
                     } else {
-                        // Delegated harvesting
-                        const keyLinkAggregateCompleteTransaction = this.stagedTransactions[0];
-                        const signedKeyLinkAggregateCompleteTransaction = await ledgerService
-                            .signTransaction(currentPath, keyLinkAggregateCompleteTransaction, this.generationHash, ledgerAccount.publicKey);
-                        console.log('ledgerService.sign1', signedKeyLinkAggregateCompleteTransaction)
-
-                        const persistentDelegationRequestTransaction = this.stagedTransactions[1];
-                        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-                        const signedPersistentDelegationRequestTransaction = await ledgerService
-                            .signTransaction(currentPath, persistentDelegationRequestTransaction, this.generationHash, ledgerAccount.publicKey);
-                        console.log('ledgerService.sign2', signedPersistentDelegationRequestTransaction)
-                        // Annouce 1, after success, storage 2
-                        // - notify about successful transaction announce
-                        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
-                        this.$emit('success');
-                        this.onConfirmationSuccess();
-                        const services = new TransactionAnnouncerService(this.$store);
-                        services.announce(signedKeyLinkAggregateCompleteTransaction).subscribe((res) => {
-                            console.log('announced')
-                            if (res.success) {
-                                console.log('announced succ')
-
-                                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
-
-                                this.command.saveSignedPersistentDelReqTxs(accountAddress, [signedPersistentDelegationRequestTransaction]);
-                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
-                                    accountAddress,
-                                    isPersistentDelReqSent: false,
-                                });
-
-                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
-                                    accountAddress,
-                                    selectedHarvestingNode: this.command.formItems.nodeModel,
-                                });
-                            }
-                        });
-                        this.show = false;
-                    }
-                } else {
-                    console.log('MILTISGI')
-                    if (!isDelegatedHarvesting) {
                         const aggregate = this.command.calculateSuggestedMaxFeeLedger(
                             AggregateTransaction.createBonded(
                                 Deadline.create(this.epochAdjustment),
@@ -570,7 +498,91 @@ export class ModalTransactionConfirmationTs extends Vue {
                             });
                         });
                         this.show = false;
+                    }
+                } else {
+                    const ledgerService = new LedgerService();
+                    const isAppSupported = await ledgerService.isAppSupported();
+                    if (!isAppSupported) {
+                        throw { errorCode: 'ledger_not_supported_app' };
+                    }
+                    const currentPath = this.currentAccount.path;
+                    const networkType = this.currentProfile.networkType;
+                    const accountService = new AccountService();
+                    this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+                    const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
+                    const ledgerAccount = PublicAccount.createFromPublicKey(signerPublicKey.toUpperCase(), networkType);
+                    // - open signature modal
+                    const txMode = this.getTransactionCommandMode(this.stagedTransactions);
+                    console.log('txmode', txMode)
+                    console.log('this.stagedTransactions', this.stagedTransactions)
+                    if (txMode == 'SIMPLE') {
+                        console.log('SIMPLE')
+                        const keyUnLinkAggregateCompleteTransaction = this.stagedTransactions[0];
+                        const signedKeyUnLinkAggregateCompleteTransaction = await ledgerService
+                            .signTransaction(currentPath, keyUnLinkAggregateCompleteTransaction, this.generationHash, ledgerAccount.publicKey);
+                        // - notify about successful transaction announce
+                        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
+                        this.$emit('success');
+                        this.onConfirmationSuccess();
+                        const services = new TransactionAnnouncerService(this.$store);
+                        services.announce(signedKeyUnLinkAggregateCompleteTransaction).subscribe((res) => {
+                            if (res.success && isDelegatedHarvesting) {
+                                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
+                                this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
+                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
+                                    accountAddress,
+                                    isPersistentDelReqSent: false,
+                                });
+
+                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
+                                    accountAddress,
+                                    selectedHarvestingNode: { nodePublicKey: '' } as NodeModel,
+                                });
+                            }
+                        });
+                        this.show = false;
+
+                    } else if (txMode == 'AGGREGATE') {
+                        console.log('AGGREGATE')
+                        const keyLinkAggregateCompleteTransaction = this.stagedTransactions[0];
+                        const signedKeyLinkAggregateCompleteTransaction = await ledgerService
+                            .signTransaction(currentPath, keyLinkAggregateCompleteTransaction, this.generationHash, ledgerAccount.publicKey);
+                        console.log('ledgerService.sign1', signedKeyLinkAggregateCompleteTransaction)
+
+                        const persistentDelegationRequestTransaction = this.stagedTransactions[1];
+                        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+                        const signedPersistentDelegationRequestTransaction = await ledgerService
+                            .signTransaction(currentPath, persistentDelegationRequestTransaction, this.generationHash, ledgerAccount.publicKey);
+                        console.log('ledgerService.sign2', signedPersistentDelegationRequestTransaction)
+                        // Annouce 1, after success, storage 2
+                        // - notify about successful transaction announce
+                        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
+                        this.$emit('success');
+                        this.onConfirmationSuccess();
+                        const services = new TransactionAnnouncerService(this.$store);
+                        services.announce(signedKeyLinkAggregateCompleteTransaction).subscribe((res) => {
+                            console.log('announced')
+                            if (res.success) {
+                                console.log('announced succ')
+
+                                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
+
+                                this.command.saveSignedPersistentDelReqTxs(accountAddress, [signedPersistentDelegationRequestTransaction]);
+                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
+                                    accountAddress,
+                                    isPersistentDelReqSent: false,
+                                });
+
+                                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
+                                    accountAddress,
+                                    selectedHarvestingNode: this.command.formItems.nodeModel,
+                                });
+                            }
+                        });
+                        this.show = false;
+
                     } else {
+                        console.log('MILTISGI')
                         if (this.stagedTransactions.length === 4) {
                             console.log('4')
                             const lockFundsKeyLinkAggregateBondedTransaction = this.stagedTransactions[0]

@@ -519,19 +519,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         // - open signature modal
         this.onShowConfirmationModal();
     }
-    
-    public get stageTransactions() {
-         return this.createTransactionCommand().stageTransactions;  
-    }
-
-    public get mode() {
-        return this.createTransactionCommand().mode;
-    }
-    
-    public get signerPublicKey() {
-        return this.currentSignerPublicKey;
-    }
-
+        
     public get currentSignerAccount() {
         return PublicAccount.createFromPublicKey(this.currentSignerPublicKey, this.networkType);
     }
