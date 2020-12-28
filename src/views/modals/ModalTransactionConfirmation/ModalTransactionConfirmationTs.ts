@@ -561,9 +561,9 @@ export class ModalTransactionConfirmationTs extends Vue {
                         this.onConfirmationSuccess();
                         const services = new TransactionAnnouncerService(this.$store);
                         services.announce(signedKeyLinkAggregateCompleteTransaction).subscribe((res) => {
-                            console.log('announced')
+                            console.log('confirmed')
                             if (res.success) {
-                                console.log('announced succ')
+                                console.log('confirmed succ')
 
                                 const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
 

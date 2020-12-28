@@ -294,24 +294,7 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         return of([]);
     }
 
-    protected getTransactions(): Transaction[] {
-        let transactions
-
-        this.resolveTransactions().subscribe(
-            (x) => {
-                transactions = x
-                console.log('getTransactions', x)
-            }
-        );
-        return transactions
-        // return [transactions[0]];
-    }
-
     public resolveTransactions(): Observable<Transaction[]> {
-        // let t = this.getKeyLinkTransactions().subscribe(x => console.log('x', x))
-        // console.log(t)
-
-
         return this.getKeyLinkTransactions().pipe(
             switchMap((txs) => this.getPersistentDelegationRequestTransaction().pipe(map((ptxs) => [...txs, ...ptxs]))),
         );
