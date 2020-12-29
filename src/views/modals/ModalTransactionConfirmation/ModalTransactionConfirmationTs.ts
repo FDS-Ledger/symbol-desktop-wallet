@@ -214,7 +214,6 @@ export class ModalTransactionConfirmationTs extends Vue {
 
     public async mounted() {
         this.stagedTransactions = await this.command.resolveTransactions().toPromise();
-        console.log('this.stagedTransactions', this.stagedTransactions);
     }
     /**
      * Reset the form with properties
@@ -300,7 +299,6 @@ export class ModalTransactionConfirmationTs extends Vue {
      * Error notification handler
      */
     private errorNotificationHandler(error: any) {
-        console.log(error);
         if (error.errorCode) {
             switch (error.errorCode) {
                 case 'NoDevice':
@@ -363,7 +361,6 @@ export class ModalTransactionConfirmationTs extends Vue {
      *
      */
     public async onSigner(transactionSigner: TransactionSigner): Promise<void> {
-        console.log('onSigner');
         // - log about unlock success
         // - get transaction stage config
 
@@ -372,7 +369,6 @@ export class ModalTransactionConfirmationTs extends Vue {
             AccountType.PRIVATE_KEY === this.currentAccount.type ||
             AccountType.KEYSTORE === this.currentAccount.type
         ) {
-            console.log('In normal');
             const announcements = await this.command.announce(new TransactionAnnouncerService(this.$store), transactionSigner).toPromise();
             announcements.forEach((announcement) => {
                 announcement.subscribe((res) => {
@@ -387,8 +383,6 @@ export class ModalTransactionConfirmationTs extends Vue {
             this.show = false;
         } else {
             try {
-                console.log('In ledger');
-                console.log('isDelegatedHarvesting', this.delegated);
                 if (!this.delegated) {
                     const ledgerService = new LedgerService();
                     const isAppSupported = await ledgerService.isAppSupported();
@@ -511,10 +505,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                     const ledgerAccount = PublicAccount.createFromPublicKey(signerPublicKey.toUpperCase(), networkType);
                     // - open signature modal
                     const txMode = this.getTransactionCommandMode(this.stagedTransactions);
-                    console.log('txmode', txMode);
-                    console.log('this.stagedTransactions', this.stagedTransactions);
                     if (txMode == 'SIMPLE') {
-                        console.log('SIMPLE');
                         const keyUnLinkAggregateCompleteTransaction = this.stagedTransactions[0];
                         const signedKeyUnLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
                             currentPath,
@@ -544,7 +535,6 @@ export class ModalTransactionConfirmationTs extends Vue {
                         });
                         this.show = false;
                     } else if (txMode == 'AGGREGATE') {
-                        console.log('AGGREGATE');
                         const keyLinkAggregateCompleteTransaction = this.stagedTransactions[0];
                         const signedKeyLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
                             currentPath,
@@ -552,7 +542,6 @@ export class ModalTransactionConfirmationTs extends Vue {
                             this.generationHash,
                             ledgerAccount.publicKey,
                         );
-                        console.log('ledgerService.sign1', signedKeyLinkAggregateCompleteTransaction);
 
                         const persistentDelegationRequestTransaction = this.stagedTransactions[1];
                         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
@@ -562,7 +551,6 @@ export class ModalTransactionConfirmationTs extends Vue {
                             this.generationHash,
                             ledgerAccount.publicKey,
                         );
-                        console.log('ledgerService.sign2', signedPersistentDelegationRequestTransaction);
                         // Annouce 1, after success, storage 2
                         // - notify about successful transaction announce
                         this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
@@ -570,12 +558,8 @@ export class ModalTransactionConfirmationTs extends Vue {
                         this.onConfirmationSuccess();
                         const services = new TransactionAnnouncerService(this.$store);
                         services.announce(signedKeyLinkAggregateCompleteTransaction).subscribe((res) => {
-                            console.log('confirmed');
                             if (res.success) {
-                                console.log('confirmed succ');
-
                                 const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
-
                                 this.command.saveSignedPersistentDelReqTxs(accountAddress, [signedPersistentDelegationRequestTransaction]);
                                 this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
                                     accountAddress,
@@ -590,9 +574,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                         });
                         this.show = false;
                     } else {
-                        console.log('MILTISGI');
                         if (this.stagedTransactions.length === 4) {
-                            console.log('4');
                             const lockFundsKeyLinkAggregateBondedTransaction = this.stagedTransactions[0];
                             const keyLinkAggregateBondedTransaction = this.stagedTransactions[1];
 
@@ -646,10 +628,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             this.onConfirmationSuccess();
                             const service = new TransactionAnnouncerService(this.$store);
                             this.command.announceHashAndAggregateBonded(service, signedKeyLinkTransactions).subscribe((res) => {
-                                console.log('confirmed');
-                                console.log('res', res);
                                 if (res.success) {
-                                    console.log('confirmed succ');
                                     const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
                                     this.command.saveSignedPersistentDelReqTxs(accountAddress, [
                                         signedLockFundsPersistentDelegationRequestAggregateBondedTransaction,
@@ -667,7 +646,6 @@ export class ModalTransactionConfirmationTs extends Vue {
                             });
                             this.show = false;
                         } else if (this.stagedTransactions.length === 2) {
-                            console.log('2');
                             const lockFundsKeyUnLinkAggregateBondedTransaction = this.stagedTransactions[0];
                             const keyUnLinkAggregateBondedTransaction = this.stagedTransactions[1];
 
@@ -703,9 +681,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                             this.onConfirmationSuccess();
                             const service = new TransactionAnnouncerService(this.$store);
                             this.command.announceHashAndAggregateBonded(service, signedKeyLinkTransactions).subscribe((res) => {
-                                console.log('comfimed');
                                 if (res.success) {
-                                    console.log('comfimed succ');
                                     const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
                                     this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
                                     this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {

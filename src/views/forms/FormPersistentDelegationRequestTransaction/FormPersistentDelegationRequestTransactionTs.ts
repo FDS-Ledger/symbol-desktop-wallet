@@ -225,7 +225,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
 
         if (txs.length > 0) {
             if (this.isMultisigMode()) {
-                console.log('getKeyLinkTransactions-isMultisigMode');
                 return this.toMultiSigAggregate(txs, maxFee, transactionSigner);
             } else {
                 const aggregate = this.calculateSuggestedMaxFee(
@@ -237,7 +236,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                         maxFee,
                     ),
                 );
-                console.log('getKeyLinkTransactions', [aggregate]);
                 return of([aggregate]);
             }
         }
@@ -284,10 +282,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
                 this.networkType,
                 maxFee,
             );
-            console.log('getPersistentDelegationRequestTransaction', [this.calculateSuggestedMaxFee(persistentDelegationReqTx)]);
-            if (this.isMultisigMode()) {
-                console.log('getPersistentDelegationRequestTransaction-isMultisigMode');
-            }
             return this.isMultisigMode()
                 ? this.toMultiSigAggregate([persistentDelegationReqTx], maxFee, transactionSigner)
                 : of([this.calculateSuggestedMaxFee(persistentDelegationReqTx)]);
@@ -313,7 +307,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         return this.getKeyLinkTransactions(transactionSigner).pipe(
             flatMap((transactions) => {
                 const signedTransactions = transactions.map((t) => transactionSigner.signTransaction(t, this.generationHash));
-                signedTransactions[0].subscribe((x) => console.log('announce', x));
 
                 if (!signedTransactions.length) {
                     return of([]) as Observable<Observable<BroadcastResult>[]>;
@@ -389,7 +382,6 @@ export class FormPersistentDelegationRequestTransactionTs extends FormTransactio
         return undefined;
     }
     private saveSignedPersistentDelReqTxs(accountAddress: string, signedPersistentDelReqTxs: SignedTransaction[]) {
-        console.log('saveSignedPersistentDelReqTxs', { accountAddress, signedPersistentDelReqTxs });
         this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SIGNED_PERSISTENT_DEL_REQ_TXS', { accountAddress, signedPersistentDelReqTxs });
         if (!signedPersistentDelReqTxs || signedPersistentDelReqTxs.length === 0) {
             const isPersistentDelReqSent = false;
