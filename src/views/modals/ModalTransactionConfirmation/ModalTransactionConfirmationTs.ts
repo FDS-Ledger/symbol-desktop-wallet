@@ -561,6 +561,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             ledgerAccount
         } = values;
         const keyLinkAggregateCompleteTransaction = this.stagedTransactions[0];
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
             currentPath,
             keyLinkAggregateCompleteTransaction,
@@ -599,7 +600,7 @@ export class ModalTransactionConfirmationTs extends Vue {
         });
         this.show = false;
     }
-    
+
     private async ledgerAccountDelegatedHarvestingKeyOnStopOnSigner(values) {
         const {
             ledgerService,
@@ -607,6 +608,7 @@ export class ModalTransactionConfirmationTs extends Vue {
             ledgerAccount,
         } = values;
         const keyUnLinkAggregateCompleteTransaction = this.stagedTransactions[0];
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyUnLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
             currentPath,
             keyUnLinkAggregateCompleteTransaction,
@@ -643,70 +645,13 @@ export class ModalTransactionConfirmationTs extends Vue {
             ledgerAccount
         } = values;
 
-        const lockFundsKeyUnLinkAggregateBondedTransaction = this.stagedTransactions[0];
-        const keyUnLinkAggregateBondedTransaction = this.stagedTransactions[1];
-
-        const signedKeyUnLinkAggregateBondedTransaction = await ledgerService
-            .signTransaction(
-                currentPath,
-                keyUnLinkAggregateBondedTransaction,
-                this.generationHash,
-                ledgerAccount.publicKey,
-            )
-            .then((res) => res);
-
-        Object.assign(lockFundsKeyUnLinkAggregateBondedTransaction, {
-            hash: signedKeyUnLinkAggregateBondedTransaction.hash,
-        });
-        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-        const signedLockFundsKeyUnLinkAggregateBondedTransaction = await ledgerService
-            .signTransaction(
-                currentPath,
-                lockFundsKeyUnLinkAggregateBondedTransaction,
-                this.generationHash,
-                ledgerAccount.publicKey,
-            )
-            .then((res) => res);
-
-        const signedKeyLinkTransactions: Observable<SignedTransaction>[] = [
-            of(signedLockFundsKeyUnLinkAggregateBondedTransaction),
-            of(signedKeyUnLinkAggregateBondedTransaction),
-        ];
-        // - notify about successful transaction announce
-        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
-        this.$emit('success');
-        this.onConfirmationSuccess();
-        const service = new TransactionAnnouncerService(this.$store);
-        this.command.announceHashAndAggregateBonded(service, signedKeyLinkTransactions).subscribe((res) => {
-            if (res.success) {
-                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
-                this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
-                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
-                    accountAddress,
-                    isPersistentDelReqSent: false,
-                });
-                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
-                    accountAddress,
-                    selectedHarvestingNode: { nodePublicKey: '' } as NodeModel,
-                });
-            }
-        });
-        this.show = false;
-    }
-    
-    private async ledgerAccountMultisigDelegatedHarvestingKeyOnStopOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount
-        } = values;
-
         const lockFundsKeyLinkAggregateBondedTransaction = this.stagedTransactions[0];
         const keyLinkAggregateBondedTransaction = this.stagedTransactions[1];
 
         const lockFundsPersistentDelegationRequestAggregateBondedTransaction = this.stagedTransactions[2];
         const persistentDelegationRequestAggregateBondedTransaction = this.stagedTransactions[3];
 
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyLinkAggregateBondedTransaction = await ledgerService.signTransaction(
             currentPath,
             keyLinkAggregateBondedTransaction,
@@ -767,6 +712,65 @@ export class ModalTransactionConfirmationTs extends Vue {
                 this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
                     accountAddress,
                     selectedHarvestingNode: this.command.formItems.nodeModel,
+                });
+            }
+        });
+        this.show = false;
+    }
+
+    private async ledgerAccountMultisigDelegatedHarvestingKeyOnStopOnSigner(values) {
+        const {
+            ledgerService,
+            currentPath,
+            ledgerAccount
+        } = values;
+
+        const lockFundsKeyUnLinkAggregateBondedTransaction = this.stagedTransactions[0];
+        const keyUnLinkAggregateBondedTransaction = this.stagedTransactions[1];
+
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+        const signedKeyUnLinkAggregateBondedTransaction = await ledgerService
+            .signTransaction(
+                currentPath,
+                keyUnLinkAggregateBondedTransaction,
+                this.generationHash,
+                ledgerAccount.publicKey,
+            )
+            .then((res) => res);
+
+        Object.assign(lockFundsKeyUnLinkAggregateBondedTransaction, {
+            hash: signedKeyUnLinkAggregateBondedTransaction.hash,
+        });
+        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+        const signedLockFundsKeyUnLinkAggregateBondedTransaction = await ledgerService
+            .signTransaction(
+                currentPath,
+                lockFundsKeyUnLinkAggregateBondedTransaction,
+                this.generationHash,
+                ledgerAccount.publicKey,
+            )
+            .then((res) => res);
+
+        const signedKeyLinkTransactions: Observable<SignedTransaction>[] = [
+            of(signedLockFundsKeyUnLinkAggregateBondedTransaction),
+            of(signedKeyUnLinkAggregateBondedTransaction),
+        ];
+        // - notify about successful transaction announce
+        this.$store.dispatch('notification/ADD_SUCCESS', 'success_transactions_signed');
+        this.$emit('success');
+        this.onConfirmationSuccess();
+        const service = new TransactionAnnouncerService(this.$store);
+        this.command.announceHashAndAggregateBonded(service, signedKeyLinkTransactions).subscribe((res) => {
+            if (res.success) {
+                const accountAddress = this.command.currentSignerHarvestingModel.accountAddress;
+                this.command.saveSignedPersistentDelReqTxs(accountAddress, []);
+                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_IS_PERSISTENT_DEL_REQ_SENT', {
+                    accountAddress,
+                    isPersistentDelReqSent: false,
+                });
+                this.$store.dispatch('harvesting/UPDATE_ACCOUNT_SELECTED_HARVESTING_NODE', {
+                    accountAddress,
+                    selectedHarvestingNode: { nodePublicKey: '' } as NodeModel,
                 });
             }
         });
