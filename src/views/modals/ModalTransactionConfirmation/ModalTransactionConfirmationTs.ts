@@ -44,6 +44,7 @@ import { LedgerService } from '@/services/LedgerService';
 
 // internal dependencies
 import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
+import { LedgerHarvestingMode } from '@/store/Harvesting';
 import { AccountTransactionSigner, TransactionAnnouncerService, TransactionSigner } from '@/services/TransactionAnnouncerService';
 // child components
 // @ts-ignore
@@ -380,17 +381,12 @@ export class ModalTransactionConfirmationTs extends Vue {
             multisigAccount,
             stageTransactions,
             maxFee,
-            txMode
-        }
+            txMode,
+        };
     }
 
     private async ledgerAccountSimpleTransactionOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount,
-            stageTransactions,
-        } = values;
+        const { ledgerService, currentPath, ledgerAccount, stageTransactions } = values;
         stageTransactions.map(async (t) => {
             const transaction = this.command.calculateSuggestedMaxFeeLedger(t);
             ledgerService
@@ -412,14 +408,7 @@ export class ModalTransactionConfirmationTs extends Vue {
     }
 
     private async ledgerAccountAggregateTransactionOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount,
-            multisigAccount,
-            stageTransactions,
-            maxFee
-        } = values;
+        const { ledgerService, currentPath, ledgerAccount, multisigAccount, stageTransactions, maxFee } = values;
         const aggregate = this.command.calculateSuggestedMaxFeeLedger(
             AggregateTransaction.createComplete(
                 Deadline.create(this.epochAdjustment),
@@ -447,14 +436,7 @@ export class ModalTransactionConfirmationTs extends Vue {
     }
 
     private async ledgerAccountMultisigTransactionOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount,
-            multisigAccount,
-            stageTransactions,
-            maxFee
-        } = values;
+        const { ledgerService, currentPath, ledgerAccount, multisigAccount, stageTransactions, maxFee } = values;
         const aggregate = this.command.calculateSuggestedMaxFeeLedger(
             AggregateTransaction.createBonded(
                 Deadline.create(this.epochAdjustment),
@@ -503,9 +485,9 @@ export class ModalTransactionConfirmationTs extends Vue {
 
     private async ledgerAccountOnSigner(): Promise<void> {
         const values = await this.getLedgerAccountOnSignerValues();
-        if (values.txMode == 'SIMPLE') {
+        if (values.txMode == TransactionCommandMode.SIMPLE) {
             await this.ledgerAccountSimpleTransactionOnSigner(values);
-        } else if (values.txMode == 'AGGREGATE') {
+        } else if (values.txMode == TransactionCommandMode.AGGREGATE) {
             await this.ledgerAccountAggregateTransactionOnSigner(values);
         } else {
             await this.ledgerAccountMultisigTransactionOnSigner(values);
@@ -516,20 +498,18 @@ export class ModalTransactionConfirmationTs extends Vue {
     private getDelegatedHarvestingMode(transactions: Transaction[]) {
         if (this.isMultisigMode()) {
             if (transactions.length === 4) {
-                return "MULTISIG_DELEGATED_HARVESTING_START_OR_SWAP";
+                return LedgerHarvestingMode.MULTISIG_DELEGATED_HARVESTING_START_OR_SWAP;
             } else if (transactions.length === 2) {
-                return "MULTISIG_DELEGATED_HARVESTING_STOP";
+                return LedgerHarvestingMode.MULTISIG_DELEGATED_HARVESTING_STOP;
             }
         } else if (transactions.length === 2) {
-            return "DELEGATED_HARVESTING_START_OR_SWAP";
+            return LedgerHarvestingMode.DELEGATED_HARVESTING_START_OR_SWAP;
         } else if (transactions.length === 1) {
-            return "DELEGATED_HARVESTING_STOP";
-        } else {
-            return "UNKNOWN"
+            return LedgerHarvestingMode.DELEGATED_HARVESTING_STOP;
         }
     }
 
-    private async getLedgerAccountDelegatedHarvestingOnSignerValues() {
+    private async getLedgerAccDelHarvestOnSignerValues() {
         const ledgerService = new LedgerService();
         const isAppSupported = await ledgerService.isAppSupported();
         if (!isAppSupported) {
@@ -550,16 +530,12 @@ export class ModalTransactionConfirmationTs extends Vue {
             accountService,
             signerPublicKey,
             ledgerAccount,
-            dMode
-        }
+            dMode,
+        };
     }
 
-    private async ledgerAccountDelegatedHarvestingOnStartOrSwapOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount
-        } = values;
+    private async ledgerAccDelHarvestOnStartOrSwap(values) {
+        const { ledgerService, currentPath, ledgerAccount } = values;
         const keyLinkAggregateCompleteTransaction = this.stagedTransactions[0];
         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
@@ -601,12 +577,8 @@ export class ModalTransactionConfirmationTs extends Vue {
         this.show = false;
     }
 
-    private async ledgerAccountDelegatedHarvestingKeyOnStopOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount,
-        } = values;
+    private async ledgerAccDelHarvestKeyOnStop(values) {
+        const { ledgerService, currentPath, ledgerAccount } = values;
         const keyUnLinkAggregateCompleteTransaction = this.stagedTransactions[0];
         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyUnLinkAggregateCompleteTransaction = await ledgerService.signTransaction(
@@ -638,12 +610,8 @@ export class ModalTransactionConfirmationTs extends Vue {
         this.show = false;
     }
 
-    private async ledgerAccountMultisigDelegatedHarvestingOnStartOrSwapOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount
-        } = values;
+    private async ledgerAccMultisigDelHarvestOnStartOrSwap(values) {
+        const { ledgerService, currentPath, ledgerAccount } = values;
 
         const lockFundsKeyLinkAggregateBondedTransaction = this.stagedTransactions[0];
         const keyLinkAggregateBondedTransaction = this.stagedTransactions[1];
@@ -718,24 +686,15 @@ export class ModalTransactionConfirmationTs extends Vue {
         this.show = false;
     }
 
-    private async ledgerAccountMultisigDelegatedHarvestingKeyOnStopOnSigner(values) {
-        const {
-            ledgerService,
-            currentPath,
-            ledgerAccount
-        } = values;
+    private async ledgerAccMultisigDelHarvestKeyOnStop(values) {
+        const { ledgerService, currentPath, ledgerAccount } = values;
 
         const lockFundsKeyUnLinkAggregateBondedTransaction = this.stagedTransactions[0];
         const keyUnLinkAggregateBondedTransaction = this.stagedTransactions[1];
 
         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedKeyUnLinkAggregateBondedTransaction = await ledgerService
-            .signTransaction(
-                currentPath,
-                keyUnLinkAggregateBondedTransaction,
-                this.generationHash,
-                ledgerAccount.publicKey,
-            )
+            .signTransaction(currentPath, keyUnLinkAggregateBondedTransaction, this.generationHash, ledgerAccount.publicKey)
             .then((res) => res);
 
         Object.assign(lockFundsKeyUnLinkAggregateBondedTransaction, {
@@ -743,12 +702,7 @@ export class ModalTransactionConfirmationTs extends Vue {
         });
         this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
         const signedLockFundsKeyUnLinkAggregateBondedTransaction = await ledgerService
-            .signTransaction(
-                currentPath,
-                lockFundsKeyUnLinkAggregateBondedTransaction,
-                this.generationHash,
-                ledgerAccount.publicKey,
-            )
+            .signTransaction(currentPath, lockFundsKeyUnLinkAggregateBondedTransaction, this.generationHash, ledgerAccount.publicKey)
             .then((res) => res);
 
         const signedKeyLinkTransactions: Observable<SignedTransaction>[] = [
@@ -777,16 +731,16 @@ export class ModalTransactionConfirmationTs extends Vue {
         this.show = false;
     }
 
-    private async ledgerAccountDelegatedHarvestingOnSigner(): Promise<void> {
-        const values = await this.getLedgerAccountDelegatedHarvestingOnSignerValues();
-        if (values.dMode === 'DELEGATED_HARVESTING_START_OR_SWAP') {
-            await this.ledgerAccountDelegatedHarvestingOnStartOrSwapOnSigner(values);
-        } else if (values.dMode === 'DELEGATED_HARVESTING_STOP') {
-            await this.ledgerAccountDelegatedHarvestingKeyOnStopOnSigner(values);
-        } else if (values.dMode === 'MULTISIG_DELEGATED_HARVESTING_START_OR_SWAP') {
-            await this.ledgerAccountMultisigDelegatedHarvestingOnStartOrSwapOnSigner(values);
-        } else if (values.dMode === 'MULTISIG_DELEGATED_HARVESTING_STOP') {
-            await this.ledgerAccountMultisigDelegatedHarvestingKeyOnStopOnSigner(values);
+    private async ledgerAccDelegatedHarvesting(): Promise<void> {
+        const values = await this.getLedgerAccDelHarvestOnSignerValues();
+        if (values.dMode === LedgerHarvestingMode.DELEGATED_HARVESTING_START_OR_SWAP) {
+            await this.ledgerAccDelHarvestOnStartOrSwap(values);
+        } else if (values.dMode === LedgerHarvestingMode.DELEGATED_HARVESTING_STOP) {
+            await this.ledgerAccDelHarvestKeyOnStop(values);
+        } else if (values.dMode === LedgerHarvestingMode.MULTISIG_DELEGATED_HARVESTING_START_OR_SWAP) {
+            await this.ledgerAccMultisigDelHarvestOnStartOrSwap(values);
+        } else if (values.dMode === LedgerHarvestingMode.MULTISIG_DELEGATED_HARVESTING_STOP) {
+            await this.ledgerAccMultisigDelHarvestKeyOnStop(values);
         }
     }
     // --> Delegated harvesting
@@ -826,7 +780,7 @@ export class ModalTransactionConfirmationTs extends Vue {
                 if (!this.delegated) {
                     await this.ledgerAccountOnSigner();
                 } else {
-                    await this.ledgerAccountDelegatedHarvestingOnSigner();
+                    await this.ledgerAccDelegatedHarvesting();
                 }
             } catch (error) {
                 this.show = false;
