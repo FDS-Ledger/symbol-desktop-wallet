@@ -65,7 +65,7 @@
         </FormWrapper>
         <ModalTransactionConfirmation
             v-if="hasConfirmationModal"
-            :isDelegatedHarvesting="true"
+            :delegated="true"
             :command="this"
             :visible="hasConfirmationModal"
             @success="onConfirmationSuccess"
