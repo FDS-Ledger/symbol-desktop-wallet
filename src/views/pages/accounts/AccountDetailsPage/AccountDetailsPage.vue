@@ -65,9 +65,9 @@
                         />
                         <div class="bottom-buttons-container">
                             <button
+                                v-if="isLedger"
                                 type="button"
                                 class="centered-button button-style button danger-button buttonA"
-                                :disabled="!isLedger"
                                 @click="showAddressLedger"
                             >
                                 {{ $t('show_on_ledger') }}
@@ -140,7 +140,7 @@ export default class AccountDetailsPage extends AccountDetailsPageTs {}
     margin-right: 1em;
     display: grid;
     grid-template-columns: 25% 25% 25% 25%;
-    grid-template-areas: "a b c d"
+    grid-template-areas: 'a b c d';
 }
 .bottom-buttons-container button {
     margin: 0 0.5em;

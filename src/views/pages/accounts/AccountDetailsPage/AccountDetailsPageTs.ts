@@ -78,7 +78,7 @@ import ModalConfirm from '@/views/modals/ModalConfirm/ModalConfirm.vue';
             currentAccount: 'account/currentAccount',
             knownAccounts: 'account/knownAccounts',
             accountMetadataList: 'metadata/accountMetadataList',
-            currentProfile: 'profile/currentProfile'
+            currentProfile: 'profile/currentProfile',
         }),
     },
 })
