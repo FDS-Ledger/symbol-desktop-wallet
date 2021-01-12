@@ -225,7 +225,7 @@ function initialize() {
         webPreferences: {
           nodeIntegration: false,
           enableRemoteModule: false,
-          preload: path.join(app.getAppPath(), 'preload.js')
+          preload: path.resolve(__dirname, 'preload.js')
         }
       })
     } else {
@@ -238,7 +238,7 @@ function initialize() {
         webPreferences: {
           nodeIntegration: false,
           enableRemoteModule: false,
-          preload: path.join(app.getAppPath(), 'preload.js')
+          preload: path.resolve(__dirname, 'preload.js')
         }
       })
     }
@@ -272,7 +272,7 @@ function initialize() {
       webPreferences: {
         nodeIntegration: false,
         enableRemoteModule: false,
-        preload: path.join(app.getAppPath(), 'preload.js')
+        preload: path.resolve(__dirname, 'preload.js')
       },
       resizable: true,
     }
