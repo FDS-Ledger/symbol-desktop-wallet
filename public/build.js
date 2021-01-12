@@ -223,7 +223,9 @@ function initialize() {
         autoHideMenuBar: false,
         resizable: true,
         webPreferences: {
-          nodeIntegration: true,
+          nodeIntegration: false,
+          enableRemoteModule: false,
+          preload: path.join(app.getAppPath(), 'preload.js')
         }
       })
     } else {
@@ -234,7 +236,9 @@ function initialize() {
         autoHideMenuBar: false,
         resizable: true,
         webPreferences: {
-          nodeIntegration: true,
+          nodeIntegration: false,
+          enableRemoteModule: false,
+          preload: path.join(app.getAppPath(), 'preload.js')
         }
       })
     }
@@ -266,7 +270,9 @@ function initialize() {
       title: app.getName(),
       titleBarStyle: 'hiddenInset',
       webPreferences: {
-        nodeIntegration: true,
+        nodeIntegration: false,
+        enableRemoteModule: false,
+        preload: path.join(app.getAppPath(), 'preload.js')
       },
       resizable: true,
     }
