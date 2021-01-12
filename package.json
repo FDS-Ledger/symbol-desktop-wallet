@@ -142,7 +142,7 @@
             "dist/**/*",
             "package.json",
             "./public/build.js",
-            "./build.js"
+            "./public/preload.js"
         ],
         "directories": {
             "buildResources": "assets",
