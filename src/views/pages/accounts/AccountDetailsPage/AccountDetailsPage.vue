@@ -66,7 +66,7 @@
                         <div class="bottom-buttons-container">
                             <button
                                 type="button"
-                                class="centered-button button-style button danger-button"
+                                class="centered-button button-style button danger-button buttonA"
                                 :disabled="!isLedger"
                                 @click="showAddressLedger"
                             >
@@ -74,7 +74,7 @@
                             </button>
                             <button
                                 type="button"
-                                class="centered-button button-style button danger-button"
+                                class="centered-button button-style button danger-button buttonD"
                                 :disabled="knownAccounts.length <= 1"
                                 @click="deleteAccountConfirmation"
                             >
@@ -138,12 +138,20 @@ export default class AccountDetailsPage extends AccountDetailsPageTs {}
 .bottom-buttons-container {
     margin-left: auto;
     margin-right: 1em;
-    width: 50%;
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-areas: "a b c d"
 }
 .bottom-buttons-container button {
     margin: 0 0.5em;
+}
+
+.bottom-buttons-container .buttonA {
+    grid-area: a;
+}
+
+.bottom-buttons-container .buttonD {
+    grid-area: d;
 }
 
 .overflow-elipsis {

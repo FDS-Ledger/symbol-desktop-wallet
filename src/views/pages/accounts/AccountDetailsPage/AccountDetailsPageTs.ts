@@ -78,6 +78,7 @@ import ModalConfirm from '@/views/modals/ModalConfirm/ModalConfirm.vue';
             currentAccount: 'account/currentAccount',
             knownAccounts: 'account/knownAccounts',
             accountMetadataList: 'metadata/accountMetadataList',
+            currentProfile: 'profile/currentProfile'
         }),
     },
 })
@@ -143,9 +144,8 @@ export class AccountDetailsPageTs extends Vue {
             }
             const currentPath = this.currentAccount.path;
             const networkType = this.currentProfile.networkType;
-            const accountService = new AccountService();
             this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-            const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
+            await this.accountService.getLedgerAccountByPath(this.currentProfile, networkType, currentPath);
         } catch (error) {
             this.$store.dispatch('SET_UI_DISABLED', {
                 isDisabled: false,
