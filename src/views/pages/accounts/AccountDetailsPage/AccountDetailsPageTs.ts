@@ -16,6 +16,8 @@
 // external dependencies
 import { Component, Vue } from 'vue-property-decorator';
 import { mapGetters } from 'vuex';
+import { LedgerService } from '@/services/LedgerService';
+import { ProfileModel } from '@/core/database/entities/ProfileModel';
 // child components
 // @ts-ignore
 import AccountNameDisplay from '@/components/AccountNameDisplay/AccountNameDisplay.vue';
@@ -87,6 +89,8 @@ export class AccountDetailsPageTs extends Vue {
      */
     public defaultAccount: string;
 
+    public currentProfile: ProfileModel;
+
     public metadataEntry: MetadataModel;
     /**
      * known accounts on current network
@@ -128,6 +132,27 @@ export class AccountDetailsPageTs extends Vue {
 
     public deleteAccountConfirmation() {
         this.showConfirmationModal = true;
+    }
+
+    public async showAddressLedger() {
+        try {
+            const ledgerService = new LedgerService();
+            const isAppSupported = await ledgerService.isAppSupported();
+            if (!isAppSupported) {
+                throw { errorCode: 'ledger_not_supported_app' };
+            }
+            const currentPath = this.currentAccount.path;
+            const networkType = this.currentProfile.networkType;
+            const accountService = new AccountService();
+            this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
+            const signerPublicKey = await accountService.getLedgerPublicKeyByPath(networkType, currentPath);
+        } catch (error) {
+            this.$store.dispatch('SET_UI_DISABLED', {
+                isDisabled: false,
+                message: '',
+            });
+            throw error;
+        }
     }
 
     public async deleteAccount() {

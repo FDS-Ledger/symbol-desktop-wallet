@@ -64,7 +64,14 @@
                             :visible="currentAccount.isMultisig"
                         />
                         <div class="bottom-buttons-container">
-                            <span></span>
+                            <button
+                                type="button"
+                                class="centered-button button-style button danger-button"
+                                :disabled="!isLedger"
+                                @click="showAddressLedger"
+                            >
+                                {{ $t('show_on_ledger') }}
+                            </button>
                             <button
                                 type="button"
                                 class="centered-button button-style button danger-button"
