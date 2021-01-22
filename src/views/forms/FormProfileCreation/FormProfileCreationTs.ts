@@ -210,18 +210,15 @@ export class FormProfileCreationTs extends Vue {
         // use repository for storage
         this.accountService.saveProfile(account);
 
+        // execute store actions
+        this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
+        this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
         if (!this.isLedger) {
-            // execute store actions
-            this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
-            this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
             this.$store.dispatch('notification/ADD_SUCCESS', NotificationType.OPERATION_SUCCESS);
 
             // flush and continue
             this.$router.push({ name: this.nextPage });
         } else {
-            // execute store actions
-            this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
-            this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
             this.importDefaultLedgerAccount(this.formItems.networkType)
                 .then((res) => {
                     this.ledgerAccountService.saveAccount(res);

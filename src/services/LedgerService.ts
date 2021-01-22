@@ -39,7 +39,7 @@ export class LedgerService {
             }
             this.transport = await this.openTransport();
             const symbolLedger = new SymbolLedger(this.transport, 'XYM');
-            const result = await symbolLedger.getAccount(path, networkType, display);
+            const result = await symbolLedger.getAccount(path, networkType, display, false);
             await this.closeTransport();
             return result;
         } catch (error) {

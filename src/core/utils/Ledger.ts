@@ -90,15 +90,10 @@ export class SymbolLedger {
      * @param path a path in BIP 44 format
      * @param display optionally enable or not the display
      * @param chainCode optionally enable or not the chainCode request
-     * @param ed25519
-     * @return an object with a publicKey, address and (optionally) chainCode
-     * @example
-     * const result = await Ledger.getAccount(bip44path);
-     * const { publicKey } = result;
+     * @return an object with a publicKey and (optionally) chainCode
      */
-    async getAccount(path: string, networkType: number, display: boolean) {
+    async getAccount(path: string, networkType: number, display: boolean, chainCode: boolean) {
         const GET_ACCOUNT_INS_FIELD = 0x02;
-        const chainCode = false;
 
         const bipPath = BIPPath.fromString(path).toPathArray();
         const curveMask = 0x80; // use Curve25519
@@ -142,7 +137,7 @@ export class SymbolLedger {
         const rawPayload = transaction.serialize();
         const signingBytes = networkGenerationHash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
-        const response = await this.ledgerMessageHandler(path, rawTx);
+        const response = await this.ledgerMessageHandler(path, rawTx, false);
         // Response from Ledger
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
@@ -165,13 +160,13 @@ export class SymbolLedger {
      * @param path a path in BIP 44 format
      * @param cosignatureTransaction a cosinature transaction needs to be signed
      * @param signerPublicKey the public key of signer
-     * @return a Signed Cosignature Transaction
+     * @return a Signed Cosignature Transaction which is signed by account at path on Ledger
      */
     public async signCosignatureTransaction(path: string, cosignatureTransaction: AggregateTransaction, signerPublicKey: string) {
         const rawPayload = cosignatureTransaction.serialize();
         const signingBytes = cosignatureTransaction.transactionInfo.hash + rawPayload.slice(216);
         const rawTx = Buffer.from(signingBytes, 'hex');
-        const response = await this.ledgerMessageHandler(path, rawTx);
+        const response = await this.ledgerMessageHandler(path, rawTx, false);
         // Response from Ledger
         const h = response.toString('hex');
         const signature = h.slice(0, 128);
@@ -186,14 +181,13 @@ export class SymbolLedger {
      * handle sending and receiving packages between Ledger and Wallet
      * @param path a path in BIP 44 format
      * @param rawTx a raw payload transaction hex string
+     * @param chainCode optionally enable or not the chainCode request
      * @returns respond package from Ledger
      */
-    private async ledgerMessageHandler(path: string, rawTx: Buffer) {
+    private async ledgerMessageHandler(path: string, rawTx: Buffer, chainCode: boolean) {
         const TX_INS_FIELD = 0x04;
         const MAX_CHUNK_SIZE = 255;
         const CONTINUE_SENDING = '0x9000';
-
-        const chainCode = false;
 
         const curveMask = 0x80; // use Curve25519
         const bipPath = BIPPath.fromString(path).toPathArray();
