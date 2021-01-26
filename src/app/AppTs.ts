@@ -20,7 +20,7 @@ import { mapGetters } from 'vuex';
 import DisabledUiOverlay from '@/components/DisabledUiOverlay/DisabledUiOverlay.vue';
 // @ts-ignore
 import SpinnerLoading from '@/components/SpinnerLoading/SpinnerLoading.vue';
-
+console.log('node-his',window['TransportNodeHid'])
 @Component({
     computed: {
         ...mapGetters({

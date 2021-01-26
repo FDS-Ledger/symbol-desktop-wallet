@@ -9,7 +9,7 @@
     },
     "license": "Apache-2.0",
     "scripts": {
-        "start": "npm run electron-rebuild && electron .",
+        "start": "electron .",
         "test": "vue-cli-service test:unit",
         "dev": "vue-cli-service serve ",
         "build": "npm run build:web",
@@ -38,7 +38,7 @@
     ],
     "dependencies": {
         "@js-joda/core": "^3.2.0",
-        "@ledgerhq/hw-transport-node-hid": "^5.31.1",
+        "@ledgerhq/hw-transport-node-hid-noevents": "^5.40.0",
         "@ledgerhq/hw-transport-webusb": "^5.16.0",
         "animate.css": "^3.7.2",
         "await-lock": "^2.0.1",
