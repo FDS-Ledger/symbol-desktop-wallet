@@ -150,7 +150,8 @@
         "directories": {
             "buildResources": "assets",
             "output": "release"
-        }
+        },
+        "npmRebuild": false
     },
     "mac": {
         "category": "public.app-category.finance",
