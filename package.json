@@ -16,9 +16,9 @@
         "build:web": "rimraf dist && mkdir dist && tsc && vue-cli-service build",
         "release": "npm run build && npm run release:all",
         "release:all": "npm run release:win && npm run release:lin && npm run release:mac && npm run release:zip",
-        "release:mac": "npm run electron-rebuild && electron-builder --mac",
-        "release:win": "npm run electron-rebuild && electron-builder --win",
-        "release:lin": "npm run electron-rebuild && electron-builder --linux deb snap tar.xz",
+        "release:mac": "electron-builder --mac",
+        "release:win": "electron-builder --win",
+        "release:lin": "electron-builder --linux deb",
         "release:zip": "npm-build-zip --source=dist --destination=release --name=all",
         "lint": "npm run prettier && npm run eslint",
         "lint:fix": "npm run prettier:fix && npm run eslint:fix",
@@ -27,7 +27,12 @@
         "prettier": "prettier --check ./src ./__tests__ ./__mocks__",
         "prettier:fix": "prettier --write ./src ./__tests__ ./__mocks__",
         "electron-rebuild": "$(npm bin)/electron-rebuild",
-        "version": "echo $npm_package_version"
+        "version": "echo $npm_package_version",
+        "install": "prebuild-install --download 'https://github.com/node-hid/node-hid/releases/download/v2.1.1/node-hid-v2.1.1-napi-v3-linux-x64.tar.gz' --runtime napi --verbose",
+        
+        "a": "electron-builder build --napi",
+        "b":" electron-builder node-gyp-rebuild"
+
     },
     "author": "Greg Saive <greg.saive@nem.software>",
     "contributors": [
@@ -150,7 +155,10 @@
         "directories": {
             "buildResources": "assets",
             "output": "release"
-        }
+        },
+        "npmRebuild": true,
+        "buildVersion":"3",
+        "buildDependenciesFromSource": false
     },
     "mac": {
         "category": "public.app-category.finance",
