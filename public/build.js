@@ -248,6 +248,8 @@ function initialize() {
     mainWindow.on('closed', function () {
       mainWindow = null
     })
+    mainWindow.toggleDevTools()
+
     const menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(menu)
   }
