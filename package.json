@@ -9,7 +9,7 @@
     },
     "license": "Apache-2.0",
     "scripts": {
-        "start": "electron .",
+        "start": "npm run node-hid:prebuild-install && electron .",
         "test": "vue-cli-service test:unit",
         "dev": "vue-cli-service serve ",
         "build": "npm run build:web",
@@ -154,7 +154,8 @@
         "directories": {
             "buildResources": "assets",
             "output": "release"
-        }
+        },
+        "npmRebuild": false
     },
     "mac": {
         "category": "public.app-category.finance",
