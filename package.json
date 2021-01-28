@@ -155,7 +155,7 @@
             "buildResources": "assets",
             "output": "release"
         },
-        "npmRebuild": true
+        "npmRebuild": false
     },
     "mac": {
         "category": "public.app-category.finance",
