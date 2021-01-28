@@ -28,7 +28,10 @@
         "prettier:fix": "prettier --write ./src ./__tests__ ./__mocks__",
         "electron-rebuild": "$(npm bin)/electron-rebuild",
         "version": "echo $npm_package_version",
-        "node-hid:prebuild-install": "cd node_modules/node-hid && npm run install && cd ../.."
+        "node-hid:prebuild-install": "cd ./node_modules/node-hid && npm run install && cd ../..",
+        "node-hid:prebuild-install:mac": "export npm_config_platform=darwin && npm run node-hid:prebuild-install",
+        "node-hid:prebuild-install:win": "export npm_config_platform=win32 && npm run node-hid:prebuild-install",
+        "node-hid:prebuild-install:lin": "export npm_config_platform=linux && npm run node-hid:prebuild-install"
     },
     "author": "Greg Saive <greg.saive@nem.software>",
     "contributors": [
@@ -152,7 +155,7 @@
             "buildResources": "assets",
             "output": "release"
         },
-        "npmRebuild": false
+        "npmRebuild": true
     },
     "mac": {
         "category": "public.app-category.finance",
