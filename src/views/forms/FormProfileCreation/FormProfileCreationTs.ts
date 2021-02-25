@@ -15,7 +15,7 @@
  */
 import { Component, Vue } from 'vue-property-decorator';
 import { mapGetters } from 'vuex';
-import { NetworkType, Password, PublicAccount } from 'symbol-sdk';
+import { NetworkType, Password } from 'symbol-sdk';
 // internal dependencies
 import { ValidationRuleset } from '@/core/validation/ValidationRuleset';
 import { ProfileService } from '@/services/ProfileService';
@@ -30,10 +30,7 @@ import FormWrapper from '@/components/FormWrapper/FormWrapper.vue';
 import FormRow from '@/components/FormRow/FormRow.vue';
 import { NetworkTypeHelper } from '@/core/utils/NetworkTypeHelper';
 import { FilterHelpers } from '@/core/utils/FilterHelpers';
-import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
-import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
 import { AccountService } from '@/services/AccountService';
-import { LedgerService } from '@/services/LedgerService';
 import { networkConfig } from '@/config';
 /// end-region custom types
 
@@ -136,47 +133,6 @@ export class FormProfileCreationTs extends Vue {
 
     /// end-region computed properties getter/setter
 
-    /**
-     * Error notification handler
-     */
-    private errorNotificationHandler(error: any) {
-        if (error.message && error.message.includes('cannot open device with path')) {
-            error.errorCode = 'ledger_connected_other_app';
-        }
-        if (error.errorCode) {
-            switch (error.errorCode) {
-                case 'NoDevice':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                    return;
-                case 'ledger_not_supported_app':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                    return;
-                case 'ledger_connected_other_app':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_connected_other_app');
-                    return;
-                case 26628:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                    return;
-                case 27904:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                    return;
-                case 27264:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                    return;
-                case 27013:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                    return;
-            }
-        } else if (error.name) {
-            switch (error.name) {
-                case 'TransportOpenUserCancelled':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
-                    return;
-            }
-        }
-        this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
-    }
-
     public onNetworkTypeChange(newNetworkType) {
         this.$store.dispatch('network/CONNECT', { networkType: newNetworkType });
     }
@@ -228,19 +184,7 @@ export class FormProfileCreationTs extends Vue {
             // flush and continue
             this.$router.push({ name: this.nextPage });
         } else {
-            this.importDefaultLedgerAccount(this.formItems.networkType)
-                .then((res) => {
-                    this.ledgerAccountService.saveAccount(res);
-                    // - update app state
-                    this.$store.dispatch('profile/ADD_ACCOUNT', res);
-                    this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
-                    this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', [res.id]);
-                    this.$store.dispatch('temporary/RESET_STATE');
-                    this.$router.push({ name: 'profiles.accessLedger.finalize' });
-                })
-                .catch((error) => {
-                    this.errorNotificationHandler(error);
-                });
+            this.$router.push({ name: 'profiles.accessLedger.finalize' });
         }
     }
 
@@ -250,40 +194,5 @@ export class FormProfileCreationTs extends Vue {
     public stripTagsProfile() {
         this.formItems.profileName = FilterHelpers.stripFilter(this.formItems.profileName);
         this.formItems.hint = FilterHelpers.stripFilter(this.formItems.hint);
-    }
-
-    /**
-     * Get a account instance of Ledger from default path
-     * @return {AccountModel}
-     */
-    private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
-        const defaultPath = AccountService.getAccountPathByNetworkType(networkType);
-        const ledgerService = new LedgerService(networkType);
-        const isAppSupported = await ledgerService.isAppSupported();
-        if (!isAppSupported) {
-            throw { errorCode: 'ledger_not_supported_app' };
-        }
-        const profileName = this.formItems.profileName;
-        const accountService = new AccountService();
-        this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-        const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, defaultPath, false);
-        const publicKey = accountResult;
-        const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
-
-        // add account to list
-        const accName = this.currentProfile.profileName;
-
-        return {
-            id: SimpleObjectStorage.generateIdentifier(),
-            name: accName,
-            profileName: profileName,
-            node: '',
-            type: AccountType.fromDescriptor('Ledger'),
-            address: address.plain(),
-            publicKey: publicKey.toUpperCase(),
-            encryptedPrivateKey: '',
-            path: defaultPath,
-            isMultisig: false,
-        };
     }
 }
