@@ -238,7 +238,7 @@ export class FormProfileCreationTs extends Vue {
                     this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
                     this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', [res.id]);
                     this.$store.dispatch('temporary/RESET_STATE');
-                    this.$router.push({ name: 'profiles.accessLedger.finalize' });
+                    this.$router.push({ name: 'profiles.accessLedger.walletSelection' });
                 })
                 .catch((error) => {
                     this.errorNotificationHandler(error);
@@ -256,6 +256,7 @@ export class FormProfileCreationTs extends Vue {
 
     /**
      * Get a account instance of Ledger from default path
+     * @param {number} networkType
      * @return {AccountModel}
      */
     private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
@@ -267,7 +268,7 @@ export class FormProfileCreationTs extends Vue {
         }
         const profileName = this.formItems.profileName;
         const accountService = new AccountService();
-        const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, defaultPath, false);
+        const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, defaultPath, false, false);
         const publicKey = accountResult;
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
 

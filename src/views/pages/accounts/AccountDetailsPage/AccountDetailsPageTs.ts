@@ -187,8 +187,15 @@ export class AccountDetailsPageTs extends Vue {
                 throw { errorCode: 'ledger_not_supported_app' };
             }
             const currentPath = this.currentAccount.path;
+            const isOptinLedgerWallet = this.currentAccount.type === AccountType.LEDGER_OPT_IN;
             this.$store.dispatch('notification/ADD_SUCCESS', 'verify_device_information');
-            const currentAccount = await this.accountService.getLedgerAccountByPath(this.currentProfile, networkType, currentPath, true);
+            const currentAccount = await this.accountService.getLedgerAccountByPath(
+                this.currentProfile,
+                networkType,
+                currentPath,
+                true,
+                isOptinLedgerWallet,
+            );
             const accountPublicKey = currentAccount.publicKey.toUpperCase();
             if (accountPublicKey === this.currentAccount.publicKey) {
                 this.$store.dispatch('notification/ADD_SUCCESS', 'ledger_correct_account');
@@ -218,6 +225,10 @@ export class AccountDetailsPageTs extends Vue {
 
     public get isLedger(): boolean {
         return this.currentAccount.type == AccountType.LEDGER;
+    }
+
+    public get isOptinAccount(): boolean {
+        return this.currentAccount.type === AccountType.OPT_IN || this.currentAccount.type === AccountType.LEDGER_OPT_IN;
     }
 
     /**
