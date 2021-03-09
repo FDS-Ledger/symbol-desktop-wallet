@@ -173,6 +173,7 @@ export default class AccountSelectionTs extends Vue {
                 case 26628:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
                     return;
+                case 26368:
                 case 27904:
                     this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
                     return;
@@ -234,7 +235,7 @@ export default class AccountSelectionTs extends Vue {
             this.$store.dispatch('temporary/RESET_STATE');
             return this.$router.push({ name: 'profiles.accessLedger.finalize' });
         } catch (error) {
-            // return this.$store.dispatch('notification/ADD_ERROR', error);
+            console.log(error)
             return this.errorNotificationHandler(error);
         }
 
@@ -260,19 +261,23 @@ export default class AccountSelectionTs extends Vue {
      * @return {void}
      */
     private async initAccounts() {
-        // - generate addresses
-        this.addressesList = await this.accountService.getLedgerAddresses(this.currentProfile.networkType, 3);
-        const repositoryFactory = this.$store.getters['network/repositoryFactory'] as RepositoryFactory;
-        // fetch accounts info
-        const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.addressesList).toPromise();
-        if (!accountsInfo) {
-            return;
+        try {
+            // - generate addresses
+            this.addressesList = await this.accountService.getLedgerAddresses(this.currentProfile.networkType, 3);
+            const repositoryFactory = this.$store.getters['network/repositoryFactory'] as RepositoryFactory;
+            // fetch accounts info
+            const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.addressesList).toPromise();
+            if (!accountsInfo) {
+                return;
+            }
+            // map balances
+            this.addressMosaicMap = {
+                ...this.addressMosaicMap,
+                ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic),
+            };
+        } catch (error) {
+            this.errorNotificationHandler(error);
         }
-        // map balances
-        this.addressMosaicMap = {
-            ...this.addressMosaicMap,
-            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic),
-        };
     }
 
     /**
