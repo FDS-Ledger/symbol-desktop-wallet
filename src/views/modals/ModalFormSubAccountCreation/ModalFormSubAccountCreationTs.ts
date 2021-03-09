@@ -183,7 +183,7 @@ export class ModalFormSubAccountCreationTs extends Vue {
     }
 
     public get isLedger(): boolean {
-        return this.currentAccount.type == AccountType.LEDGER;
+        return this.currentAccount.type === AccountType.LEDGER || this.currentAccount.type === AccountType.LEDGER_OPT_IN;
     }
 
     public get isPrivateKeyAccount(): boolean {

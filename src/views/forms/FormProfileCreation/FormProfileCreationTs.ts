@@ -35,6 +35,8 @@ import { AccountModel, AccountType } from '@/core/database/entities/AccountModel
 import { AccountService } from '@/services/AccountService';
 import { LedgerService } from '@/services/LedgerService';
 import { networkConfig } from '@/config';
+import { Network } from 'symbol-hd-wallets';
+
 /// end-region custom types
 
 @Component({
@@ -199,7 +201,7 @@ export class FormProfileCreationTs extends Vue {
      * @param {number} networkType
      * @return {AccountModel}
      */
-    private async importDefaultLedgerAccount(networkType: number): Promise<AccountModel> {
+    private async importDefaultLedgerAccount(networkType: number, curve: Network = Network.SYMBOL): Promise<AccountModel> {
         const defaultPath = AccountService.getAccountPathByNetworkType(networkType);
         const ledgerService = new LedgerService(networkType);
         const isAppSupported = await ledgerService.isAppSupported();
@@ -208,7 +210,8 @@ export class FormProfileCreationTs extends Vue {
         }
         const profileName = this.formItems.profileName;
         const accountService = new AccountService();
-        const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, defaultPath, false, false);
+        const isOptinSymbolWallet = curve === Network.BITCOIN;
+        const accountResult = await accountService.getLedgerPublicKeyByPath(networkType, defaultPath, false, isOptinSymbolWallet);
         const publicKey = accountResult;
         const address = PublicAccount.createFromPublicKey(publicKey, networkType).address;
 
@@ -220,7 +223,7 @@ export class FormProfileCreationTs extends Vue {
             name: accName,
             profileName: profileName,
             node: '',
-            type: AccountType.fromDescriptor('Ledger'),
+            type: isOptinSymbolWallet ? AccountType.LEDGER_OPT_IN : AccountType.LEDGER,
             address: address.plain(),
             publicKey: publicKey.toUpperCase(),
             encryptedPrivateKey: '',

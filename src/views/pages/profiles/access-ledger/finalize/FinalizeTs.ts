@@ -31,7 +31,7 @@ import { mapGetters } from 'vuex';
 export default class FinalizeTs extends Vue {
     /**
      * Finalize the profile creation process by adding
-     * just redirect to dasbroad page.
+     * just redirect to dashboard page.
      * @return {void}
      */
     /**

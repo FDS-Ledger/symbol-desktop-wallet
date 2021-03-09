@@ -16,8 +16,8 @@
 import { Component, Vue, Watch } from 'vue-property-decorator';
 import { Formatters } from '@/core/utils/Formatters';
 import { mapGetters } from 'vuex';
-import { MnemonicPassPhrase, Network } from 'symbol-hd-wallets';
-import { AccountInfo, Address, MosaicId, NetworkType, RepositoryFactory } from 'symbol-sdk';
+import { Network } from 'symbol-hd-wallets';
+import { AccountInfo, PublicAccount, Address, MosaicId, NetworkType, RepositoryFactory } from 'symbol-sdk';
 import { ProfileModel } from '@/core/database/entities/ProfileModel';
 import { AccountService } from '@/services/AccountService';
 // @ts-ignore
@@ -87,9 +87,10 @@ export default class AccessLedgerTs extends Vue {
 
     /**
      * List of opt in addresses
-     * @var {Address[]}
+     * @var {string[] | Address[]}
      */
     public optInAddressesList: Address[] = [];
+    private optInAccountsList: string[] = [];
 
     /**
      * Balances map
@@ -124,9 +125,6 @@ export default class AccessLedgerTs extends Vue {
         Vue.nextTick().then(() => {
             setTimeout(() => this.initAccounts(), 300);
         });
-        Vue.nextTick().then(() => {
-            setTimeout(() => this.initOptInAccounts(), 300);
-        });
         await this.$store.dispatch('temporary/initialize');
     }
 
@@ -139,10 +137,10 @@ export default class AccessLedgerTs extends Vue {
         if (this.initialized) {
             return;
         }
-        if (this.addressesList.length === 0) {
-            // - generate addresses
-            this.addressesList = await this.accountService.getLedgerAddresses(this.currentProfile.networkType, 3);
-        }
+
+        // - generate addresses
+        this.addressesList = await this.accountService.getLedgerAccounts(this.currentProfile.networkType, 3);
+
         const repositoryFactory = this.$store.getters['network/repositoryFactory'] as RepositoryFactory;
         // fetch accounts info
         const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.addressesList).toPromise();
@@ -153,6 +151,7 @@ export default class AccessLedgerTs extends Vue {
         this.addressMosaicMap = this.mapBalanceByAddress(accountsInfo, this.networkMosaic);
 
         this.initialized = true;
+        this.initOptInAccounts();
     }
 
     /**
@@ -160,27 +159,24 @@ export default class AccessLedgerTs extends Vue {
      * @return {void}
      */
     @Watch('optInSelectedAccounts')
-    private async initOptInAccounts() {
+    private async initOptInAccounts(): Promise<void> {
         if (this.optInInitialized) {
             return;
         }
 
         // - generate addresses
-        const possibleOptInAccounts = this.accountService.generateAccountsFromMnemonic(
-            new MnemonicPassPhrase(this.currentMnemonic),
-            this.currentProfile.networkType,
-            10,
-            Network.BITCOIN,
-        );
+        this.optInAccountsList = await this.accountService.getLedgerPublickey(this.currentProfile.networkType, 3, Network.BITCOIN, false);
 
         // whitelist opt in accounts
         const key = this.currentProfile.networkType === NetworkType.MAIN_NET ? 'MAINNET' : 'TESTNET';
         const whitelisted = process.env[`VUE_APP_${key}_WHITELIST`] ? process.env[`VUE_APP_${key}_WHITELIST`].split(',') : [];
-        const optInAccounts = possibleOptInAccounts.filter((account) => whitelisted.indexOf(account.publicKey) >= 0);
+        const optInAccounts = this.optInAccountsList.filter((account) => whitelisted.indexOf(account) >= 0);
         if (optInAccounts.length === 0) {
             return;
         }
-        this.optInAddressesList = optInAccounts.map((account) => account.address);
+        this.optInAddressesList = optInAccounts.map(
+            (account: string) => PublicAccount.createFromPublicKey(account, this.currentProfile.networkType).address,
+        );
 
         // fetch accounts info
         const repositoryFactory = this.$store.getters['network/repositoryFactory'] as RepositoryFactory;

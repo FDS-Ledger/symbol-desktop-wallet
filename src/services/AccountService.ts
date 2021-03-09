@@ -314,13 +314,18 @@ export class AccountService {
     }
 
     /**
-     * Get list of addresses from Ledger
+     * Get list of accounts from Ledger
      * @param {NetworkType} networkType
      * @param {number} count
      * @param curve
      * @return {Address[]}
      */
-    public async getLedgerAddresses(networkType: NetworkType, count: number = 10, curve = Network.SYMBOL): Promise<Address[]> {
+    public async getLedgerAccounts(
+        networkType: NetworkType,
+        count: number = 10,
+        curve = Network.SYMBOL,
+        isGetAddresses: boolean = true,
+    ): Promise<Address[]> {
         const isOptinLedgerWallet = curve === Network.BITCOIN;
         const derivationService = new DerivationService(networkType);
 
@@ -333,13 +338,38 @@ export class AccountService {
 
             return derivationService.incrementPathLevel(default_path, DerivationPathLevels.Profile, index);
         });
-        const publicKeys = [];
+        const publicKeys: string[] = [];
         for (const path of paths) {
             const publicKey = await this.getLedgerPublicKeyByPath(networkType, path, false, isOptinLedgerWallet);
             publicKeys.push(publicKey);
         }
         // const publicKeys = Promise.all(paths.map((path) => this.getLedgerPublicKeyByPath(networkType, path, false, isOptinLedgerWallet)));
         return publicKeys.map((publicKey) => PublicAccount.createFromPublicKey(publicKey, networkType).address);
+    }
+    public async getLedgerPublickey(
+        networkType: NetworkType,
+        count: number = 10,
+        curve = Network.SYMBOL,
+        isGetAddresses: boolean = true,
+    ): Promise<string[]> {
+        const isOptinLedgerWallet = curve === Network.BITCOIN;
+        const derivationService = new DerivationService(networkType);
+
+        const default_path = AccountService.getAccountPathByNetworkType(networkType);
+        // increment derivation path \a count times
+        const paths = [...Array(count).keys()].map((index) => {
+            if (index == 0) {
+                return default_path;
+            }
+
+            return derivationService.incrementPathLevel(default_path, DerivationPathLevels.Profile, index);
+        });
+        const publicKeys: string[] = [];
+        for (const path of paths) {
+            const publicKey = await this.getLedgerPublicKeyByPath(networkType, path, false, isOptinLedgerWallet);
+            publicKeys.push(publicKey.toUpperCase());
+        }
+        return publicKeys.map((publicKey) => PublicAccount.createFromPublicKey(publicKey, networkType).publicKey);
     }
 
     /**
