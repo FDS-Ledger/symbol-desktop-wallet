@@ -457,6 +457,7 @@ export const routes: AppRoute[] = [
                         meta: {
                             protected: false,
                             isLedger: true,
+                            nextPage: 'profiles.accessLedger.walletSelection',
                         },
                         // @ts-ignore
                         component: () => import('@/views/forms/FormProfileCreation/FormProfileCreation.vue'),

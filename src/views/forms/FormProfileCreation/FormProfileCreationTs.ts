@@ -85,12 +85,6 @@ export class FormProfileCreationTs extends Vue {
     public generationHash: string;
 
     /**
-     * Accounts repository
-     * @var {ProfileService}
-     */
-    public accountService = new ProfileService();
-
-    /**
      * Ledger Accounts repository
      * @var {ProfileService}
      */
@@ -140,47 +134,6 @@ export class FormProfileCreationTs extends Vue {
 
     /// end-region computed properties getter/setter
 
-    /**
-     * Error notification handler
-     */
-    private errorNotificationHandler(error: any) {
-        if (error.message && error.message.includes('cannot open device with path')) {
-            error.errorCode = 'ledger_connected_other_app';
-        }
-        if (error.errorCode) {
-            switch (error.errorCode) {
-                case 'NoDevice':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
-                    return;
-                case 'ledger_not_supported_app':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
-                    return;
-                case 'ledger_connected_other_app':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_connected_other_app');
-                    return;
-                case 26628:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
-                    return;
-                case 27904:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
-                    return;
-                case 27264:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
-                    return;
-                case 27013:
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
-                    return;
-            }
-        } else if (error.name) {
-            switch (error.name) {
-                case 'TransportOpenUserCancelled':
-                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
-                    return;
-            }
-        }
-        this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
-    }
-
     public connect(newNetworkType) {
         this.$store.dispatch('network/CONNECT', { networkType: newNetworkType });
     }
@@ -211,7 +164,7 @@ export class FormProfileCreationTs extends Vue {
         // -  password stored as hash (never plain.)
         const passwordHash = ProfileService.getPasswordHash(new Password(this.formItems.password));
         const genHash = this.generationHash || networkConfig[this.formItems.networkType].networkConfigurationDefaults.generationHash;
-        const account: ProfileModel = {
+        const profile: ProfileModel = {
             profileName: this.formItems.profileName,
             accounts: [],
             seed: '',
@@ -223,27 +176,14 @@ export class FormProfileCreationTs extends Vue {
             selectedNodeUrlToConnect: '',
         };
         // use repository for storage
-        this.accountService.saveProfile(account);
+        this.profileService.saveProfile(profile);
 
         // execute store actions
-        this.$store.dispatch('profile/SET_CURRENT_PROFILE', account);
+        this.$store.dispatch('profile/SET_CURRENT_PROFILE', profile);
         this.$store.dispatch('temporary/SET_PASSWORD', this.formItems.password);
-        if (!this.isLedger) {
-            // flush and continue
-            this.$router.push({ name: this.nextPage });
-        } else {
-            this.importDefaultLedgerAccount(this.formItems.networkType)
-                .then((res) => {
-                    // execute store actions
-                    this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
-                    this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', [res.id]);
-                    this.$store.dispatch('temporary/RESET_STATE');
-                    this.$router.push({ name: 'profiles.accessLedger.walletSelection' });
-                })
-                .catch((error) => {
-                    this.errorNotificationHandler(error);
-                });
-        }
+
+        // flush and continue
+        this.$router.push({ name: this.nextPage });
     }
 
     /**

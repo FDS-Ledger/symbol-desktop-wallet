@@ -153,6 +153,47 @@ export default class AccountSelectionTs extends Vue {
     }
 
     /**
+     * Error notification handler
+     */
+    private errorNotificationHandler(error: any) {
+        if (error.message && error.message.includes('cannot open device with path')) {
+            error.errorCode = 'ledger_connected_other_app';
+        }
+        if (error.errorCode) {
+            switch (error.errorCode) {
+                case 'NoDevice':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device');
+                    return;
+                case 'ledger_not_supported_app':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_supported_app');
+                    return;
+                case 'ledger_connected_other_app':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_connected_other_app');
+                    return;
+                case 26628:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_device_locked');
+                    return;
+                case 27904:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_opened_app');
+                    return;
+                case 27264:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_not_using_xym_app');
+                    return;
+                case 27013:
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_user_reject_request');
+                    return;
+            }
+        } else if (error.name) {
+            switch (error.name) {
+                case 'TransportOpenUserCancelled':
+                    this.$store.dispatch('notification/ADD_ERROR', 'ledger_no_device_selected');
+                    return;
+            }
+        }
+        this.$store.dispatch('notification/ADD_ERROR', this.$t('create_profile_failed', { reason: error.message || error }));
+    }
+
+    /**
      * Finalize the account selection process by adding
      * the selected accounts to storage.
      * @return {void}
@@ -187,14 +228,31 @@ export default class AccountSelectionTs extends Vue {
             // set known accounts
             this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', accountIdentifiers);
 
+            // execute store actions
             this.profileService.updateAccounts(this.currentProfile, accountIdentifiers);
 
             this.$store.dispatch('temporary/RESET_STATE');
-            // execute store actions
             return this.$router.push({ name: 'profiles.accessLedger.finalize' });
         } catch (error) {
-            return this.$store.dispatch('notification/ADD_ERROR', error);
+            // return this.$store.dispatch('notification/ADD_ERROR', error);
+            return this.errorNotificationHandler(error);
         }
+
+        // this.importDefaultLedgerAccount(this.formItems.networkType)
+        // .then((res) => {
+        //     // execute store actions
+        //     this.ledgerAccountService.saveAccount(res);
+        //     this.$store.dispatch('account/SET_CURRENT_ACCOUNT', res);
+        //     this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', [res.id]);
+        //     this.$store.dispatch('temporary/RESET_STATE');
+
+        //     // execute store actions
+        //     await this.$store.dispatch('profile/ADD_ACCOUNT', res);
+
+        // })
+        // .catch((error) => {
+
+        // });
     }
 
     /**
@@ -296,7 +354,7 @@ export default class AccountSelectionTs extends Vue {
                 name: `Ledger Account ${indexes[i] + 1}`,
                 node: '',
                 type: AccountType.LEDGER,
-                address: account.address,
+                address: account.address['plain'](),
                 publicKey: accounts[i].publicKey,
                 encryptedPrivateKey: '',
                 path: paths[i],
