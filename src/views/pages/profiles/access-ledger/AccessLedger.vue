@@ -116,6 +116,17 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="address-list-container">
+                                <Spin
+                                    v-if="
+                                        (selectedAccounts.length && !addressesList.length) ||
+                                        (optInSelectedAccounts.length && !optInAddressesList.length)
+                                    "
+                                    size="large"
+                                    fix
+                                    class="absolute"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

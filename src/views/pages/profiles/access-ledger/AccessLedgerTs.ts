@@ -124,7 +124,7 @@ export default class AccessLedgerTs extends Vue {
         Vue.nextTick().then(() => {
             setTimeout(async () => {
                 await this.initAccounts();
-                this.initOptInAccounts();
+                await this.initOptInAccounts();
             }, 300);
         });
         await this.$store.dispatch('temporary/initialize');

@@ -45,6 +45,11 @@ import _ from 'lodash';
 })
 export default class AccountSelectionTs extends Vue {
     /**
+     * Form is being submitted
+     */
+    protected isLoading: boolean = false;
+
+    /**
      * Formatting helpers
      * @protected
      */
@@ -137,8 +142,10 @@ export default class AccountSelectionTs extends Vue {
 
         Vue.nextTick().then(() => {
             setTimeout(async () => {
+                this.isLoading = true;
                 await this.initAccounts();
-                this.initOptInAccounts();
+                await this.initOptInAccounts();
+                this.isLoading = false;
             }, 200);
         });
     }
