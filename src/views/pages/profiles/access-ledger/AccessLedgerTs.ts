@@ -87,10 +87,9 @@ export default class AccessLedgerTs extends Vue {
 
     /**
      * List of opt in addresses
-     * @var {string[] | Address[]}
+     * @var {Address[]}
      */
     public optInAddressesList: Address[] = [];
-    private optInAccountsList: string[] = [];
 
     /**
      * Balances map
@@ -126,6 +125,8 @@ export default class AccessLedgerTs extends Vue {
             setTimeout(() => this.initAccounts(), 300);
         });
         await this.$store.dispatch('temporary/initialize');
+        this.$store.commit('account/resetSelectedAddressesToInteract');
+        this.$store.commit('account/resetSelectedAddressesOptInToInteract');
     }
 
     @Watch('selectedAccounts')
@@ -134,7 +135,7 @@ export default class AccessLedgerTs extends Vue {
      * @return {void}
      */
     private async initAccounts() {
-        if (this.initialized) {
+        if (this.initialized || !this.currentProfile || !this.currentProfile.networkType) {
             return;
         }
 
@@ -148,7 +149,10 @@ export default class AccessLedgerTs extends Vue {
             return;
         }
         // map balances
-        this.addressMosaicMap = this.mapBalanceByAddress(accountsInfo, this.networkMosaic);
+        this.addressMosaicMap = {
+            ...this.addressMosaicMap,
+            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic),
+        };
 
         this.initialized = true;
         this.initOptInAccounts();
@@ -160,17 +164,17 @@ export default class AccessLedgerTs extends Vue {
      */
     @Watch('optInSelectedAccounts')
     private async initOptInAccounts(): Promise<void> {
-        if (this.optInInitialized) {
+        if (this.optInInitialized || !this.currentProfile || !this.currentProfile.networkType) {
             return;
         }
 
         // - generate addresses
-        this.optInAccountsList = await this.accountService.getLedgerPublickey(this.currentProfile.networkType, 10, Network.BITCOIN, false);
+        const possibleOptInAccounts = await this.accountService.getLedgerPublickey(this.currentProfile.networkType, 10, Network.BITCOIN, false);
 
         // whitelist opt in accounts
         const key = this.currentProfile.networkType === NetworkType.MAIN_NET ? 'mainnet' : 'testnet';
         const whitelisted = process.env.KEYS_WHITELIST[key];
-        const optInAccounts = this.optInAccountsList.filter((account) => whitelisted.indexOf(account) >= 0);
+        const optInAccounts = possibleOptInAccounts.filter((account) => whitelisted.indexOf(account) >= 0);
         if (optInAccounts.length === 0) {
             return;
         }
@@ -180,8 +184,7 @@ export default class AccessLedgerTs extends Vue {
 
         // fetch accounts info
         const repositoryFactory = this.$store.getters['network/repositoryFactory'] as RepositoryFactory;
-        const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.addressesList).toPromise();
-
+        const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.optInAddressesList).toPromise();
         // map balances
         this.addressMosaicMap = {
             ...this.addressMosaicMap,
