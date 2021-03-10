@@ -216,7 +216,11 @@ export default class AccessLedgerTs extends Vue {
             }
 
             // - generate addresses
-            const possibleOptInAccounts = await this.accountService.getLedgerPublickey(this.currentProfile.networkType, 10, Network.BITCOIN, false);
+            const possibleOptInAccounts = await this.accountService.getLedgerPublicKey(
+                this.currentProfile.networkType,
+                10,
+                Network.BITCOIN,
+            );
 
             // whitelist opt in accounts
             const key = this.currentProfile.networkType === NetworkType.MAIN_NET ? 'mainnet' : 'testnet';

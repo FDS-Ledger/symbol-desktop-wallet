@@ -15,11 +15,10 @@
  */
 import { Component, Vue } from 'vue-property-decorator';
 import { mapGetters } from 'vuex';
-import { AccountInfo, Address, PublicAccount, MosaicId, NetworkType, Password, RepositoryFactory } from 'symbol-sdk';
+import { AccountInfo, Address, PublicAccount, MosaicId, NetworkType, RepositoryFactory } from 'symbol-sdk';
 import { Network } from 'symbol-hd-wallets';
 // internal dependencies
-import { AccountModel, AccountType } from '@/core/database/entities/AccountModel';
-import { DerivationPathLevels, DerivationService } from '@/services/DerivationService';
+import { DerivationService } from '@/services/DerivationService';
 import { AccountService } from '@/services/AccountService';
 import { NotificationType } from '@/core/utils/NotificationType';
 import { Formatters } from '@/core/utils/Formatters';
@@ -38,8 +37,6 @@ import _ from 'lodash';
             networkMosaic: 'mosaic/networkMosaic',
             networkCurrency: 'mosaic/networkCurrency',
             currentProfile: 'profile/currentProfile',
-            currentPassword: 'temporary/password',
-            currentMnemonic: 'temporary/mnemonic',
             selectedAccounts: 'account/selectedAddressesToInteract',
             selectedOptInAccounts: 'account/selectedAddressesOptInToInteract',
         }),
@@ -73,13 +70,6 @@ export default class AccountSelectionTs extends Vue {
      * @var {string}
      */
     public currentProfile: ProfileModel;
-
-    /**
-     * Temporary stored password
-     * @see {Store.Temporary}
-     * @var {Password}
-     */
-    public currentPassword: Password;
 
     /**
      * Derivation Service
@@ -241,11 +231,10 @@ export default class AccountSelectionTs extends Vue {
     private async initOptInAccounts() {
         try {
             // - generate addresses
-            const possibleOptInAccounts: any[] = await this.accountService.getLedgerPublickey(
+            const possibleOptInAccounts: any[] = await this.accountService.getLedgerPublicKey(
                 this.currentProfile.networkType,
                 10,
                 Network.BITCOIN,
-                true,
             );
 
             // whitelist opt in accounts

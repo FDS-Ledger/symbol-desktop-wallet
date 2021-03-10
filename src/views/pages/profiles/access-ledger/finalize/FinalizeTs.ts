@@ -187,7 +187,7 @@ export default class FinalizeTs extends Vue {
      * Create an account instance from mnemonic and path
      * @return {AccountModel}
      */
-    private createAccountsFromPathIndexes(indexes: number[]): AccountModel[] {
+    private async createAccountsFromPathIndexes(indexes: number[]): Promise<AccountModel[]> {
         const accountPath = AccountService.getAccountPathByNetworkType(this.currentProfile.networkType);
         const paths = indexes.map((index) => {
             if (index == 0) {
@@ -197,31 +197,18 @@ export default class FinalizeTs extends Vue {
             return this.derivation.incrementPathLevel(accountPath, DerivationPathLevels.Profile, index);
         });
 
-        const accounts = this.accountService.generateAccountsFromPaths(
-            new MnemonicPassPhrase(this.currentMnemonic),
-            this.currentProfile.networkType,
-            paths,
-        );
+        const accounts = await this.accountService.generateLedgerAccountsPaths(this.currentProfile.networkType, paths);
 
-        const simpleWallets = accounts.map((account, i) =>
-            SimpleWallet.createFromPrivateKey(
-                `Ledger Account ${indexes[i] + 1}`,
-                this.currentPassword,
-                account.privateKey,
-                this.currentProfile.networkType,
-            ),
-        );
-
-        return simpleWallets.map((simpleWallet, i) => {
+        return accounts.map((account, i) => {
             return {
                 id: SimpleObjectStorage.generateIdentifier(),
                 profileName: this.currentProfile.profileName,
-                name: simpleWallet.name,
+                name: `Ledger Account ${indexes[i] + 1}`,
                 node: '',
                 type: AccountType.LEDGER,
-                address: simpleWallet.address.plain(),
+                address: account.address['plain'](),
                 publicKey: accounts[i].publicKey,
-                encryptedPrivateKey: simpleWallet.encryptedPrivateKey,
+                encryptedPrivateKey: '',
                 path: paths[i],
                 isMultisig: false,
             };
@@ -229,10 +216,10 @@ export default class FinalizeTs extends Vue {
     }
 
     /**
-     * Create an optin account instance from mnemonic and path
+     * Create opt-in account instances from Ledger device and paths
      * @return {AccountModel}
      */
-    private createOptInAccountsFromPathIndexes(indexes: number[]): AccountModel[] {
+    private async createOptInAccountsFromPathIndexes(indexes: number[]): Promise<AccountModel[]> {
         const accountPath = AccountService.getAccountPathByNetworkType(this.currentProfile.networkType);
         const paths = indexes.map((index) => {
             if (index == 0) {
@@ -242,43 +229,29 @@ export default class FinalizeTs extends Vue {
             return this.derivation.incrementPathLevel(accountPath, DerivationPathLevels.Profile, index);
         });
 
-        const accounts = this.accountService.generateAccountsFromPaths(
-            new MnemonicPassPhrase(this.currentMnemonic),
-            this.currentProfile.networkType,
-            paths,
-            Network.BITCOIN,
-        );
+        const accounts = await this.accountService.generateLedgerAccountsPaths(this.currentProfile.networkType, paths, Network.BITCOIN);
 
-        const simpleWallets = accounts.map((account, i) =>
-            SimpleWallet.createFromPrivateKey(
-                `Opt In Ledger Account ${indexes[i] + 1}`,
-                this.currentPassword,
-                account.privateKey,
-                this.currentProfile.networkType,
-            ),
-        );
-
-        return simpleWallets.map((simpleWallet, i) => {
+        return accounts.map((account, i) => {
             return {
                 id: SimpleObjectStorage.generateIdentifier(),
                 profileName: this.currentProfile.profileName,
-                name: simpleWallet.name,
+                name: `Opt In Ledger Account ${indexes[i] + 1}`,
                 node: '',
                 type: AccountType.LEDGER_OPT_IN,
-                address: simpleWallet.address.plain(),
+                address: account.address['plain'](),
                 publicKey: accounts[i].publicKey,
-                encryptedPrivateKey: simpleWallet.encryptedPrivateKey,
+                encryptedPrivateKey: '',
                 path: paths[i],
                 isMultisig: false,
             };
         });
     }
 
-    public finish() {
+    public async finish() {
         try {
             // create account models
-            const normalAccounts = this.createAccountsFromPathIndexes(this.selectedAccounts);
-            const optInAccounts = this.createOptInAccountsFromPathIndexes(this.selectedOptInAccounts);
+            const normalAccounts = await this.createAccountsFromPathIndexes(this.selectedAccounts);
+            const optInAccounts = await this.createOptInAccountsFromPathIndexes(this.selectedOptInAccounts);
 
             const accounts = [...optInAccounts, ...normalAccounts];
             // save newly created accounts
