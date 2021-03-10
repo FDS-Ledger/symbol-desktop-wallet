@@ -122,7 +122,10 @@ export default class AccessLedgerTs extends Vue {
     async mounted() {
         this.accountService = new AccountService();
         Vue.nextTick().then(() => {
-            setTimeout(() => this.initAccounts(), 300);
+            setTimeout(async () => {
+                await this.initAccounts();
+                this.initOptInAccounts();
+            }, 300);
         });
         await this.$store.dispatch('temporary/initialize');
         this.$store.commit('account/resetSelectedAddressesToInteract');
@@ -135,6 +138,9 @@ export default class AccessLedgerTs extends Vue {
     private errorNotificationHandler(error: any) {
         if (error.message && error.message.includes('cannot open device with path')) {
             error.errorCode = 'ledger_connected_other_app';
+        }
+        if (error.message && error.message.includes('A transfer error')) {
+            return;
         }
         if (error.errorCode) {
             switch (error.errorCode) {
@@ -198,7 +204,6 @@ export default class AccessLedgerTs extends Vue {
             };
 
             this.initialized = true;
-            this.initOptInAccounts();
         } catch (error) {
             this.errorNotificationHandler(error);
         }

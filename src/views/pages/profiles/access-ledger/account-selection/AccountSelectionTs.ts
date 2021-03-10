@@ -136,7 +136,10 @@ export default class AccountSelectionTs extends Vue {
         this.accountService = new AccountService();
 
         Vue.nextTick().then(() => {
-            setTimeout(() => this.initAccounts(), 0);
+            setTimeout(async () => {
+                await this.initAccounts();
+                this.initOptInAccounts();
+            }, 200);
         });
     }
 
@@ -150,6 +153,9 @@ export default class AccountSelectionTs extends Vue {
     private errorNotificationHandler(error: any) {
         if (error.message && error.message.includes('cannot open device with path')) {
             error.errorCode = 'ledger_connected_other_app';
+        }
+        if (error.message && error.message.includes('A transfer error')) {
+            return;
         }
         if (error.errorCode) {
             switch (error.errorCode) {
@@ -218,7 +224,6 @@ export default class AccountSelectionTs extends Vue {
                 ...this.addressBalanceMap,
                 ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic, this.addressesList),
             };
-            this.initOptInAccounts();
         } catch (error) {
             this.errorNotificationHandler(error);
         }

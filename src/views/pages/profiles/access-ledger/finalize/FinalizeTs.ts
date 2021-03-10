@@ -148,6 +148,9 @@ export default class FinalizeTs extends Vue {
         if (error.message && error.message.includes('cannot open device with path')) {
             error.errorCode = 'ledger_connected_other_app';
         }
+        if (error.message && error.message.includes('A transfer error')) {
+            return;
+        }
         if (error.errorCode) {
             switch (error.errorCode) {
                 case 'NoDevice':
