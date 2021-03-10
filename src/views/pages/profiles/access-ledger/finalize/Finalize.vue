@@ -28,6 +28,7 @@
                         {{ $t('finish') }}
                     </button>
                 </div>
+                <Spin v-if="isLoading" size="large" fix class="absolute" />
             </div>
         </div>
     </div>
