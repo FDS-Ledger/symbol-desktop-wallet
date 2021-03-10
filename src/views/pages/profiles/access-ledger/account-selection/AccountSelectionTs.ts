@@ -29,7 +29,7 @@ import MosaicAmountDisplay from '@/components/MosaicAmountDisplay/MosaicAmountDi
 import { NetworkCurrencyModel } from '@/core/database/entities/NetworkCurrencyModel';
 import { ProfileModel } from '@/core/database/entities/ProfileModel';
 import { ProfileService } from '@/services/ProfileService';
-import { SimpleObjectStorage } from '@/core/database/backends/SimpleObjectStorage';
+import _ from 'lodash';
 
 @Component({
     computed: {
@@ -103,7 +103,13 @@ export default class AccountSelectionTs extends Vue {
      * Balances map
      * @var {any}
      */
-    public addressMosaicMap = {};
+    public addressBalanceMap: { [address: string]: number } = {};
+
+    /**
+     * Balances map
+     * @var {any}
+     */
+    public optInAddressBalanceMap: { [address: string]: number } = {};
 
     /**
      * Map of selected accounts
@@ -199,40 +205,7 @@ export default class AccountSelectionTs extends Vue {
         if (!this.selectedAccounts.length) {
             return this.$store.dispatch('notification/ADD_ERROR', NotificationType.IMPORT_EMPTY_ACCOUNT_LIST);
         }
-
-        try {
-            // create account models
-            const normalAccounts = await this.createAccountsFromPathIndexes(this.selectedAccounts);
-            const optInAccounts = await this.createOptInAccountsFromPathIndexes(this.selectedOptInAccounts);
-
-            const accounts = [...optInAccounts, ...normalAccounts];
-            // save newly created accounts
-            accounts.forEach((account, index) => {
-                // Store accounts using repository
-                this.accountService.saveAccount(account);
-                // set current account
-                if (index === 0) {
-                    this.$store.dispatch('account/SET_CURRENT_ACCOUNT', account);
-                }
-                // add accounts to profile
-                this.$store.dispatch('profile/ADD_ACCOUNT', account);
-            });
-
-            // get accounts identifiers
-            const accountIdentifiers = accounts.map((account) => account.id);
-
-            // set known accounts
-            this.$store.dispatch('account/SET_KNOWN_ACCOUNTS', accountIdentifiers);
-
-            // execute store actions
-            this.profileService.updateAccounts(this.currentProfile, accountIdentifiers);
-
-            this.$store.dispatch('temporary/RESET_STATE');
-            return this.$router.push({ name: 'profiles.accessLedger.finalize' });
-        } catch (error) {
-            // return this.$store.dispatch('notification/ADD_ERROR', error);
-            return this.errorNotificationHandler(error);
-        }
+        return this.$router.push({ name: 'profiles.accessLedger.finalize' });
     }
 
     /**
@@ -249,9 +222,9 @@ export default class AccountSelectionTs extends Vue {
             return;
         }
         // map balances
-        this.addressMosaicMap = {
-            ...this.addressMosaicMap,
-            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic),
+        this.addressBalanceMap = {
+            ...this.addressBalanceMap,
+            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic, this.addressesList),
         };
         this.initOptInAccounts();
     }
@@ -287,97 +260,18 @@ export default class AccountSelectionTs extends Vue {
         const accountsInfo = await repositoryFactory.createAccountRepository().getAccountsInfo(this.addressesList).toPromise();
 
         // map balances
-        this.addressMosaicMap = {
-            ...this.addressMosaicMap,
-            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic),
+        this.optInAddressBalanceMap = {
+            ...this.optInAddressBalanceMap,
+            ...this.mapBalanceByAddress(accountsInfo, this.networkMosaic, this.optInAddressesList),
         };
     }
 
-    public mapBalanceByAddress(accountsInfo: AccountInfo[], mosaic: MosaicId): Record<string, number> {
-        return accountsInfo
-            .map(({ mosaics, address }) => {
-                // - check balance
-                const hasNetworkMosaic = mosaics.find((mosaicOwned) => mosaicOwned.id.equals(mosaic));
-
-                // - account doesn't hold network mosaic so the balance is zero
-                if (hasNetworkMosaic === undefined) {
-                    return {
-                        address: address.plain(),
-                        balance: 0,
-                    };
-                }
-                // - map balance to address
-                const balance = hasNetworkMosaic.amount.compact();
-                return {
-                    address: address.plain(),
-                    balance: balance,
-                };
-            })
-            .reduce((acc, { address, balance }) => ({ ...acc, [address]: balance }), {});
-    }
-
-    /**
-     * Create an account instance from mnemonic and path
-     * @return {AccountModel}
-     */
-    private async createAccountsFromPathIndexes(indexes: number[]): Promise<AccountModel[]> {
-        const accountPath = AccountService.getAccountPathByNetworkType(this.currentProfile.networkType);
-        const paths = indexes.map((index) => {
-            if (index == 0) {
-                return accountPath;
-            }
-
-            return this.derivation.incrementPathLevel(accountPath, DerivationPathLevels.Profile, index);
-        });
-
-        const accounts = await this.accountService.generateLedgerAccountsPaths(this.currentProfile.networkType, paths);
-
-        return accounts.map((account, i) => {
-            return {
-                id: SimpleObjectStorage.generateIdentifier(),
-                profileName: this.currentProfile.profileName,
-                name: `Ledger Account ${indexes[i] + 1}`,
-                node: '',
-                type: AccountType.LEDGER,
-                address: account.address['plain'](),
-                publicKey: accounts[i].publicKey,
-                encryptedPrivateKey: '',
-                path: paths[i],
-                isMultisig: false,
-            };
-        });
-    }
-
-    /**
-     * Create opt-in account instances from Ledger device and paths
-     * @return {AccountModel}
-     */
-    private async createOptInAccountsFromPathIndexes(indexes: number[]): Promise<AccountModel[]> {
-        const accountPath = AccountService.getAccountPathByNetworkType(this.currentProfile.networkType);
-        const paths = indexes.map((index) => {
-            if (index == 0) {
-                return accountPath;
-            }
-
-            return this.derivation.incrementPathLevel(accountPath, DerivationPathLevels.Profile, index);
-        });
-
-        const accounts = await this.accountService.generateLedgerAccountsPaths(this.currentProfile.networkType, paths, Network.BITCOIN);
-
-        return accounts.map((account, i) => {
-            return {
-                id: SimpleObjectStorage.generateIdentifier(),
-                profileName: this.currentProfile.profileName,
-                name: `Opt In Ledger Account ${indexes[i] + 1}`,
-                node: '',
-                type: AccountType.LEDGER_OPT_IN,
-                address: account.address['plain'](),
-                publicKey: accounts[i].publicKey,
-                encryptedPrivateKey: '',
-                path: paths[i],
-                isMultisig: false,
-            };
-        });
+    public mapBalanceByAddress(accountsInfo: AccountInfo[], mosaicId: MosaicId, addressList: Address[]): { [address: string]: number } {
+        const addressToAccountInfo = _.keyBy(accountsInfo, (a) => a.address.plain());
+        return _.chain(addressList)
+            .keyBy((a) => a.plain())
+            .mapValues((a) => addressToAccountInfo[a.plain()]?.mosaics.find((m) => m.id.equals(mosaicId))?.amount.compact() ?? 0)
+            .value();
     }
 
     /**
